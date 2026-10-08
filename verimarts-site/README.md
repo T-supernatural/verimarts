@@ -12,6 +12,12 @@ npm run dev
 
 Open the localhost URL printed by Vite. `npm run build` performs type checking and creates `dist/`. `npm run preview` serves that build locally. Other checks: `npm run typecheck`, `npm run lint`, and `npm test` (install Chromium first with `npx playwright install chromium`).
 
+## Netlify deployment
+
+For a GitHub repository containing the `verimarts-site` folder, set Netlify's base directory to `verimarts-site` (relative to the repository root, without a leading slash), build command to `npm run build`, and publish directory to `dist` (relative to the base directory). The included `netlify.toml` sets the build command, publish directory, and Node 24; retain the base-directory setting in Netlify. If the repository itself contains this app at its root, leave the base directory empty instead.
+
+Commit and push `netlify.toml` and `public/_redirects` to the connected GitHub branch, then redeploy. Vite copies `_redirects` into `dist` so React Router pages open correctly on direct visits and refreshes. Publish the compiled `dist` folder, never the source directory: source `index.html` references `/src/main.tsx`, which requires the Vite development server; built HTML references compiled JavaScript under `/assets/`.
+
 ## Implemented
 
 - Home, Showroom, Vehicle Detail, About, Services, Contact, and a not-found page.
