@@ -734,7 +734,12 @@ footer {
   height: auto;
   filter: url(#logo-without-background) drop-shadow(0 0 1px #c0c0c0);
 }
-.logo-filter-definitions { position:absolute; width:0; height:0; pointer-events:none; }
+.logo-filter-definitions {
+  position: absolute;
+  width: 0;
+  height: 0;
+  pointer-events: none;
+}
 .intro-caption {
   color: #c0c0c0;
   font-size: 11px;

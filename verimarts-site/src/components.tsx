@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { motion, useReducedMotion } from "framer-motion";
 import { Link } from "react-router-dom";
 import {
   ArrowUpRight,
@@ -79,9 +80,22 @@ export function AvailabilityBadge({ vehicle }: { vehicle: Vehicle }) {
     </span>
   );
 }
-export function VehicleCard({ vehicle: v }: { vehicle: Vehicle }) {
+export function VehicleCard({
+  vehicle: v,
+  delay = 0,
+}: {
+  vehicle: Vehicle;
+  delay?: number;
+}) {
+  const reduced = useReducedMotion();
   return (
-    <article className="vehicle-card">
+    <motion.article
+      className="vehicle-card"
+      initial={reduced ? false : { opacity: 0, y: 18 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      viewport={{ once: true, amount: 0.1 }}
+      transition={{ duration: 0.45, delay: reduced ? 0 : delay }}
+    >
       <Link to={`/showroom/${v.id}`} className="card-photo">
         <img
           src={v.images[0]}
@@ -124,15 +138,20 @@ export function VehicleCard({ vehicle: v }: { vehicle: Vehicle }) {
           </Link>
         </div>
       </div>
-    </article>
+    </motion.article>
   );
 }
 export function Gallery({ vehicle: v }: { vehicle: Vehicle }) {
   const [index, setIndex] = useState(0);
+  const reduced = useReducedMotion();
   return (
     <div className="gallery">
       <div className="gallery-main">
-        <img
+        <motion.img
+          key={index}
+          initial={reduced ? false : { opacity: 0.5, scale: 1.02 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ duration: reduced ? 0 : 0.3 }}
           src={v.images[index]}
           alt={`Illustrative photo ${index + 1} for ${v.make} ${v.model}; not actual vehicle stock`}
           onError={(e) => {

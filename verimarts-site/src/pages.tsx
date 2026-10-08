@@ -1,7 +1,8 @@
+import { Reveal, HeroImage } from "./Motion";
 import { VehicleFilters } from "./VehicleFilters";
 import { useEffect } from "react";
 import { Link, useParams, useSearchParams } from "react-router-dom";
-import { motion } from "framer-motion";
+import { motion, useReducedMotion } from "framer-motion";
 import {
   ArrowRight,
   ArrowUpRight,
@@ -27,16 +28,12 @@ import {
   useCatalogue,
 } from "./components";
 export function Home() {
+  const reduced = useReducedMotion();
   const { items, ...state } = useCatalogue();
   return (
     <>
-      <section className="hero">
-        <img
-          className="hero-image"
-          src="/assets/hero.webp"
-          alt="Illustrative performance car on an open road"
-          fetchPriority="high"
-        />
+      <Reveal className="hero">
+        <HeroImage />
         <div className="hero-shade" />
         <div className="hero-content">
           <div className="eyebrow">
@@ -44,9 +41,9 @@ export function Home() {
             THE VERIMARTS DIGITAL SHOWROOM
           </div>
           <motion.h1
-            initial={{ opacity: 0, y: 15 }}
+            initial={reduced ? false : { opacity: 0, y: 15 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6 }}
+            transition={{ duration: reduced ? 0 : 0.6 }}
           >
             A new road.
             <br />A new <span>possibility.</span>
@@ -75,7 +72,7 @@ export function Home() {
         <div className="hero-index">
           <span>01</span> / THE NEXT CHAPTER
         </div>
-      </section>
+      </Reveal>
       <div className="value-strip">
         <span>
           <CarFront size={21} />
@@ -89,7 +86,7 @@ export function Home() {
           <MessageCircle size={21} />A direct conversation
         </span>
       </div>
-      <section className="section featured">
+      <Reveal className="section featured">
         <div className="section-heading">
           <div>
             <span className="eyebrow red-text">THE SHOWROOM</span>
@@ -106,12 +103,12 @@ export function Home() {
         <DemoNotice />
         <CatalogueState {...state} />
         <div className="vehicle-grid">
-          {items.slice(0, 3).map((v) => (
-            <VehicleCard key={v.id} vehicle={v} />
+          {items.slice(0, 3).map((v, index) => (
+            <VehicleCard key={v.id} vehicle={v} delay={(index % 3) * 0.08} />
           ))}
         </div>
-      </section>
-      <section className="category-section section">
+      </Reveal>
+      <Reveal className="category-section section">
         <div className="section-heading">
           <div>
             <span className="eyebrow red-text">YOUR LIFE. YOUR DRIVE.</span>
@@ -143,8 +140,8 @@ export function Home() {
             </Link>
           ))}
         </div>
-      </section>
-      <section className="section journey">
+      </Reveal>
+      <Reveal className="section journey">
         <div>
           <span className="eyebrow red-text">A SIMPLE WAY FORWARD</span>
           <h2>
@@ -182,8 +179,8 @@ export function Home() {
             </div>
           ))}
         </div>
-      </section>
-      <section className="service-preview section">
+      </Reveal>
+      <Reveal className="service-preview section">
         <span className="eyebrow red-text">WHAT WE DO</span>
         <div className="section-heading">
           <h2>
@@ -201,14 +198,14 @@ export function Home() {
             </Link>
           </div>
         </div>
-      </section>
+      </Reveal>
       <ContactCallout />
     </>
   );
 }
 function ContactCallout() {
   return (
-    <section className="contact-callout">
+    <Reveal className="contact-callout">
       <div>
         <span className="eyebrow">LET’S FIND YOUR NEXT CHAPTER</span>
         <h2>See something you like?</h2>
@@ -217,7 +214,7 @@ function ContactCallout() {
       <Link to="/contact" className="button white">
         Let’s talk <ArrowUpRight size={19} />
       </Link>
-    </section>
+    </Reveal>
   );
 }
 function PageHeading({
@@ -271,7 +268,7 @@ export function Showroom() {
           : b.listedAt.localeCompare(a.listedAt),
     );
   return (
-    <section className="section showroom">
+    <Reveal className="section showroom">
       <PageHeading
         eyebrow="THE DIGITAL SHOWROOM"
         title="Your next drive is here."
@@ -304,8 +301,8 @@ export function Showroom() {
           </div>
           <CatalogueState {...state} />
           <div className="vehicle-grid inventory-grid">
-            {filtered.map((v) => (
-              <VehicleCard key={v.id} vehicle={v} />
+            {filtered.map((v, index) => (
+              <VehicleCard key={v.id} vehicle={v} delay={(index % 3) * 0.08} />
             ))}
           </div>
           {!state.loading && !state.error && !filtered.length && (
@@ -320,7 +317,7 @@ export function Showroom() {
           )}
         </div>
       </div>
-    </section>
+    </Reveal>
   );
 }
 export function Detail() {
@@ -332,13 +329,13 @@ export function Detail() {
   }, [v]);
   if (state.loading || state.error)
     return (
-      <section className="section">
+      <Reveal className="section">
         <CatalogueState {...state} />
-      </section>
+      </Reveal>
     );
   if (!v) return <NotFound />;
   return (
-    <section className="section detail" key={v.id}>
+    <Reveal className="section detail" key={v.id}>
       <Link className="text-link" to="/showroom">
         ← Back to showroom
       </Link>
@@ -414,13 +411,13 @@ export function Detail() {
             <VehicleCard key={item.id} vehicle={item} />
           ))}
       </div>
-    </section>
+    </Reveal>
   );
 }
 export function About({ replay }: { replay: () => void }) {
   return (
     <>
-      <section className="section">
+      <Reveal className="section">
         <PageHeading
           eyebrow="ABOUT VERIMARTS"
           title="Driven by choice."
@@ -465,7 +462,7 @@ export function About({ replay }: { replay: () => void }) {
             <li>Contact information, enquiry hours, and verified services.</li>
           </ul>
         </div>
-      </section>
+      </Reveal>
       <ContactCallout />
     </>
   );
@@ -473,7 +470,7 @@ export function About({ replay }: { replay: () => void }) {
 export function Services() {
   return (
     <>
-      <section className="section">
+      <Reveal className="section">
         <PageHeading
           eyebrow="WHAT WE DO"
           title="A focused automotive experience."
@@ -512,14 +509,14 @@ export function Services() {
             confirms what is offered and the applicable terms.
           </p>
         </div>
-      </section>
+      </Reveal>
       <ContactCallout />
     </>
   );
 }
 export function Contact() {
   return (
-    <section className="section contact-page">
+    <Reveal className="section contact-page">
       <PageHeading
         eyebrow="START A CONVERSATION"
         title="Let’s talk about your next drive."
@@ -613,18 +610,18 @@ export function Contact() {
           <ChevronRight size={28} />
         </aside>
       </div>
-    </section>
+    </Reveal>
   );
 }
 export function NotFound() {
   return (
-    <section className="section empty-state">
+    <Reveal className="section empty-state">
       <span className="eyebrow red-text">404 / A DIFFERENT ROAD</span>
       <h1>This page isn’t here.</h1>
       <p>The vehicle or page you’re looking for could not be found.</p>
       <Link to="/showroom" className="button primary">
         Explore showroom <ArrowUpRight size={18} />
       </Link>
-    </section>
+    </Reveal>
   );
 }

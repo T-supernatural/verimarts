@@ -137,3 +137,25 @@ test("intro logo failure does not block the website", async ({ browser }) => {
   ).toBeVisible();
   await context.close();
 });
+
+test("navbar clicks return to the top, including the active page", async ({
+  page,
+}) => {
+  await page.goto("/");
+  await page.evaluate(() => window.scrollTo(0, document.body.scrollHeight));
+  await expect
+    .poll(() => page.evaluate(() => window.scrollY))
+    .toBeGreaterThan(100);
+  await page
+    .getByRole("navigation")
+    .getByRole("link", { name: "Home", exact: true })
+    .evaluate((el) => (el as HTMLElement).click());
+  await expect.poll(() => page.evaluate(() => window.scrollY)).toBe(0);
+  await page.evaluate(() => window.scrollTo(0, document.body.scrollHeight));
+  await page
+    .getByRole("navigation")
+    .getByRole("link", { name: "Services", exact: true })
+    .evaluate((el) => (el as HTMLElement).click());
+  await expect(page).toHaveURL(/\/services$/);
+  await expect.poll(() => page.evaluate(() => window.scrollY)).toBe(0);
+});

@@ -119,7 +119,12 @@ export default function App() {
           Skip to content
         </a>
         <header className="header">
-          <Link to="/" className="brand" aria-label="Verimarts home" onClick={() => window.scrollTo({top:0, behavior:"instant"})}>
+          <Link
+            to="/"
+            className="brand"
+            aria-label="Verimarts home"
+            onClick={() => window.scrollTo({ top: 0, behavior: "instant" })}
+          >
             <img src="/assets/logo.png" alt="Verimarts" />
           </Link>
           <nav
@@ -131,13 +136,20 @@ export default function App() {
                 end={to === "/"}
                 key={to}
                 to={to}
-                onClick={() => { setMenu(false); window.scrollTo({top:0, behavior:"instant"}); }}
+                onClick={() => {
+                  setMenu(false);
+                  window.scrollTo({ top: 0, behavior: "instant" });
+                }}
               >
                 {label}
               </NavLink>
             ))}
           </nav>
-          <Link to="/showroom" className="header-cta" onClick={() => window.scrollTo({top:0, behavior:"instant"})}>
+          <Link
+            to="/showroom"
+            className="header-cta"
+            onClick={() => window.scrollTo({ top: 0, behavior: "instant" })}
+          >
             Explore showroom <ArrowUpRight size={17} />
           </Link>
           <button

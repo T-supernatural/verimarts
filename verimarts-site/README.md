@@ -34,7 +34,7 @@ Open the localhost URL printed by Vite. `npm run build` performs type checking a
 
 The workspace contained an empty `verimarts-site` folder and six supplied resources. Originals remain untouched at the workspace root.
 
-- `VERIMARTS geometric V automotive logo.png`: copied unchanged into website assets; used in the navbar, footer, animated intro, favicon, About page, and basic preview metadata. Its supplied white background is preserved.
+- `VERIMARTS geometric V automotive logo.png`: copied unchanged into website assets; used in the navbar, footer, animated intro, favicon, About page, and basic preview metadata. Intro and footer use a browser SVG filter to remove the white background, with subtle silver edging for contrast on dark surfaces. The source artwork remains untouched.
 - `Verimarts four-variant logo grid.png`: reviewed during the initial build; this alternative artwork is no longer used by the website.
 - `color verimarts.jpg`: reviewed; racing red `#FF0000`, black `#000000`, and silver `#C0C0C0` inform the theme.
 - `Animated_logo_reveal_20261008142909.mp4`: reviewed as a visual reference for road perspective and restrained red lighting. The website now builds these effects with CSS around the unchanged geometric V artwork; it does not load or play this video.
@@ -51,8 +51,10 @@ Unconfirmed sourcing, inspections, test-drive arrangements, warranties, financin
 
 Page layouts live in `src/pages.tsx`, with navigation and the intro in `src/App.tsx`. Presentation is separated from `src/data/catalogue.ts`; replace its `list`/`find` implementations for a future backend. Shared cards, badges, galleries, loading states, and enquiry controls live in `src/components.tsx`; filters are reusable in `src/VehicleFilters.tsx`. Contact details and safely encoded WhatsApp messages are centralized in `src/config/business.ts`. The package lock records installed versions; TypeScript 6.0 is selected to satisfy the lint parser's supported version range.
 
+`src/Motion.tsx` supplies scroll-triggered section reveals, restrained hero parallax, and the transparent-logo filter. Vehicle cards have staggered viewport reveals and galleries animate image changes. Motion respects reduced-motion preferences; section/card reveals are disabled in that mode. Navbar clicks reset scroll even when the selected page is already active.
+
 Temporary PDF/video inspection dependencies live in the ignored `.tools` directory and are not needed to run the website.
 
 ## Validation results
 
-Verified on 8 October 2026: production build, TypeScript checking, and ESLint all passed. Six Playwright checks cover encoded WhatsApp messages, catalogue search/filter/reset/sorting, vehicle galleries and missing contact paths, all pages at a mobile viewport with image-load checks, session/replay/reduced-motion intro behaviour without video, and failed-logo recovery. Desktop and mobile screenshots are saved in `review/`. Dependency installation reported zero known vulnerabilities. Vite and Playwright required execution outside the workspace sandbox to launch their compiler/browser processes.
+Verified on 8 October 2026: production build, TypeScript checking, and ESLint all passed. All seven Playwright checks passed, covering encoded WhatsApp messages, catalogue search/filter/reset/sorting, vehicle galleries and missing contact paths, all pages at a mobile viewport with image-load checks, session/replay/reduced-motion intro behaviour without video, failed-logo recovery, and navbar scroll resets including the active page. Desktop and mobile screenshots are saved in `review/`. Dependency installation reported zero known vulnerabilities. Vite and Playwright required execution outside the workspace sandbox to launch their compiler/browser processes.
