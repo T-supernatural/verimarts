@@ -1,0 +1,25 @@
+project_id = "verimarts"
+
+[api]
+enabled = true
+port = 54321
+schemas = ["public"]
+extra_search_path = ["public", "extensions"]
+
+[db]
+port = 54322
+major_version = 17
+
+[studio]
+enabled = false
+
+[storage]
+enabled = true
+file_size_limit = "5MiB"
+
+[auth]
+enabled = true
+site_url = "http://127.0.0.1:5174"
+additional_redirect_urls = ["http://127.0.0.1:5174/reset-password", "http://127.0.0.1:5173/portal/reset-password"]
+enable_signup = false
+minimum_password_length = 12

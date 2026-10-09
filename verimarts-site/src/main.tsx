@@ -1,14 +1,27 @@
-import React from "react";
+import React, { lazy, Suspense } from "react";
 import ReactDOM from "react-dom/client";
 import { BrowserRouter } from "react-router-dom";
 import { MotionConfig } from "framer-motion";
 import App from "./App";
 import "./styles.css";
+import "./marketplace.css";
+const Portal = lazy(() => import("./portal/Portal"));
+const portal =
+  import.meta.env.MODE === "portal" ||
+  (import.meta.env.DEV && window.location.pathname.startsWith("/portal"));
 ReactDOM.createRoot(document.getElementById("root")!).render(
   <React.StrictMode>
     <BrowserRouter>
       <MotionConfig reducedMotion="user">
-        <App />
+        <Suspense
+          fallback={
+            <p role="status" className="empty-state">
+              Loading Verimarts…
+            </p>
+          }
+        >
+          {portal ? <Portal /> : <App />}
+        </Suspense>
       </MotionConfig>
     </BrowserRouter>
   </React.StrictMode>,

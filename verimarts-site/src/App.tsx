@@ -3,19 +3,24 @@ import { Link, NavLink, Route, Routes, useLocation } from "react-router-dom";
 import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
 import { ArrowRight, ArrowUpRight, Menu, X, Play } from "lucide-react";
 import { LogoTransparencyFilter } from "./Motion";
+import { About, Services, Contact, NotFound } from "./pages";
 import {
-  Home,
-  Showroom,
-  Detail,
-  About,
-  Services,
-  Contact,
-  NotFound,
-} from "./pages";
+  MarketplaceHome as Home,
+  MarketplaceBrowse,
+  MarketplaceDetail as Detail,
+  Journal,
+  JournalDetail,
+} from "./marketplace/Public";
+import { categories, journalName } from "./data/marketplace";
 const links = [
   ["/", "Home"],
-  ["/showroom", "Showroom"],
-  ["/services", "Services"],
+  ["/farm-produce", "Farm & Produce"],
+  ["/shop", "Shop All"],
+  ["/cars", "Cars"],
+  ["/property", "Property"],
+  ["/electronics", "Electronics"],
+  ["/other-goods", "Other Goods"],
+  ["/journal", "Journal"],
   ["/about", "About"],
   ["/contact", "Contact"],
 ];
@@ -109,7 +114,10 @@ export default function App() {
   useEffect(() => {
     window.scrollTo(0, 0);
     const titles: Record<string, string> = {
-      "/": "Find your next drive",
+      "/": "One marketplace. Many possibilities.",
+      "/shop": "Shop All",
+      "/journal": journalName,
+      ...Object.fromEntries(categories.map((c) => [`/${c.id}`, c.name])),
       "/showroom": "Explore the showroom",
       "/about": "About Verimarts",
       "/services": "Our services",
@@ -119,7 +127,7 @@ export default function App() {
     const description = document.querySelector('meta[name="description"]');
     description?.setAttribute(
       "content",
-      `${titles[location.pathname] ?? "Explore vehicle details"} at Verimarts. Browse the digital showroom and enquire directly. Demo inventory preview.`,
+      `${titles[location.pathname] ?? "Explore published content"} at Verimarts. Discover listings and published writing, and enquire directly.`,
     );
   }, [location.pathname]);
   return (
@@ -160,11 +168,11 @@ export default function App() {
             ))}
           </nav>
           <Link
-            to="/showroom"
+            to="/shop"
             className="header-cta"
             onClick={() => window.scrollTo({ top: 0, behavior: "instant" })}
           >
-            Explore showroom <ArrowUpRight size={17} />
+            Explore listings <ArrowUpRight size={17} />
           </Link>
           <button
             className="menu-toggle"
@@ -178,8 +186,22 @@ export default function App() {
         <main id="main">
           <Routes>
             <Route path="/" element={<Home />} />
-            <Route path="/showroom" element={<Showroom />} />
+            <Route path="/shop" element={<MarketplaceBrowse />} />
+            {categories.map((c) => (
+              <Route
+                key={c.id}
+                path={`/${c.id}`}
+                element={<MarketplaceBrowse category={c.id} />}
+              />
+            ))}
+            <Route
+              path="/showroom"
+              element={<MarketplaceBrowse category="cars" />}
+            />
             <Route path="/showroom/:id" element={<Detail />} />
+            <Route path="/listings/:slug" element={<Detail />} />
+            <Route path="/journal" element={<Journal />} />
+            <Route path="/journal/:slug" element={<JournalDetail />} />
             <Route
               path="/about"
               element={<About replay={() => setIntro(true)} />}
@@ -198,9 +220,9 @@ export default function App() {
                 alt="Verimarts"
               />
               <p>
-                Your next chapter starts
+                Your next possibility starts
                 <br />
-                with the right drive.
+                with a closer look.
               </p>
             </div>
             <div>
@@ -214,7 +236,7 @@ export default function App() {
             <div>
               <span className="eyebrow">LET’S TALK</span>
               <p>
-                Discover a vehicle you like?
+                Discover an item you like?
                 <br />
                 Start with an enquiry.
               </p>
@@ -227,7 +249,7 @@ export default function App() {
             <span>
               © {new Date().getFullYear()} Verimarts. All rights reserved.
             </span>
-            <span>Digital showroom · Preview edition</span>
+            <span>One owner · Direct enquiries</span>
             <button onClick={() => setIntro(true)}>
               <Play size={13} />
               Replay brand intro
