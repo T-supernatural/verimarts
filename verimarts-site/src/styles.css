@@ -126,8 +126,19 @@ h3 {
   gap: 40px;
   border-bottom: 1px solid #eee;
   background: #fff;
-  position: relative;
-  z-index: 10;
+  position: sticky;
+  top: 0;
+  z-index: 50;
+  transition: transform 0.2s ease;
+  box-shadow: 0 3px 18px #00000008;
+}
+.header--hidden {
+  transform: translateY(-100%);
+  pointer-events: none;
+}
+.header--hidden:has(:focus-visible) {
+  transform: translateY(0);
+  pointer-events: auto;
 }
 .brand {
   width: 170px;

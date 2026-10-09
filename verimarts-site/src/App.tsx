@@ -85,7 +85,19 @@ function Intro({ close }: { close: () => void }) {
 export default function App() {
   const [intro, setIntro] = useState(!sessionSeen());
   const [menu, setMenu] = useState(false);
+  const [headerHidden, setHeaderHidden] = useState(false);
   const location = useLocation();
+  useEffect(() => {
+    let previous = Math.max(0, window.scrollY);
+    const onScroll = () => {
+      const current = Math.max(0, window.scrollY);
+      if (current === previous) return;
+      setHeaderHidden(current > 90 && current > previous);
+      previous = current;
+    };
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => window.removeEventListener("scroll", onScroll);
+  }, []);
   const close = useCallback(() => {
     try {
       sessionStorage.setItem("verimarts-intro", "seen");
@@ -118,7 +130,9 @@ export default function App() {
         <a href="#main" className="skip-link">
           Skip to content
         </a>
-        <header className="header">
+        <header
+          className={`header${headerHidden && !menu ? " header--hidden" : ""}`}
+        >
           <Link
             to="/"
             className="brand"

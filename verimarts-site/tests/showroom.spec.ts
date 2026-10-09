@@ -1,6 +1,32 @@
 import { test, expect } from "@playwright/test";
 import { business, whatsappUrl } from "../src/config/business";
 
+test("fixed navbar hides downwards and reappears on a small upward scroll", async ({
+  page,
+}) => {
+  await page.goto("/");
+  const header = page.locator("header");
+  await expect
+    .poll(() =>
+      header.evaluate((el) => Math.round(el.getBoundingClientRect().top)),
+    )
+    .toBe(0);
+  await page.evaluate(() => window.scrollTo(0, 600));
+  await expect(header).toHaveClass(/header--hidden/);
+  await expect
+    .poll(() => header.evaluate((el) => el.getBoundingClientRect().bottom))
+    .toBeLessThanOrEqual(1);
+  await page.evaluate(() => window.scrollTo(0, 599));
+  await expect(header).not.toHaveClass(/header--hidden/);
+  await expect
+    .poll(() =>
+      header.evaluate((el) => Math.round(el.getBoundingClientRect().top)),
+    )
+    .toBe(0);
+  await page.evaluate(() => window.scrollTo(0, 0));
+  await expect(header).not.toHaveClass(/header--hidden/);
+});
+
 test("WhatsApp configuration produces a safely encoded vehicle enquiry", () => {
   expect(whatsappUrl()).toBeUndefined();
   const original = business.whatsapp;
