@@ -107,3 +107,9 @@ The user explicitly requested invented NGN prices and removal of visible demo/sa
 Exact handover media paths are mapped in src/data/handoverMedia.json to public decorative assets. These nonconfidential illustrations are public static assets; they are not private uploaded stock photos. Real uploads continue to use the private bucket and its RLS policies. Public listing/article visibility still requires publication. The repository resolves only the exact registered illustration paths; arbitrary URLs or local paths are not accepted. Removing static illustrations from a listing deletes its metadata without attempting a Storage deletion.
 
 Dataset: src/data/demoContent.json. Asset/SQL preparation: scripts/prepare-handover.mjs. The import is explicit and never an automatic public fallback.
+
+## Product photography update
+
+All 26 non-car product illustrations now resolve to locally hosted JPEG photographs. Existing car photographs remain in place. No Supabase update or re-import is needed: the registered handover paths map to the new assets through src/data/handoverMedia.json. Redeploy the updated code/assets on both Netlify projects to show the photos on the public site and in portal previews.
+
+Photo source, author and license records are in src/data/productPhotos.json and PHOTO_CREDITS.md. The public /photo-credits page is linked in the footer. Wikimedia photographs retain their individual Creative Commons licenses; Pexels photographs use the Pexels License. These are illustrative stock photographs, not verified actual-item pictures. The client's actual uploads continue to use private Supabase Storage. The handover preparation script preserves the photographic mappings.

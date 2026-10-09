@@ -12,6 +12,7 @@ import {
   JournalDetail,
 } from "./marketplace/Public";
 import { categories, journalName } from "./data/marketplace";
+import { PhotoCredits } from "./marketplace/PhotoCredits";
 const links = [
   ["/", "Home"],
   ["/farm-produce", "Farm & Produce"],
@@ -122,6 +123,7 @@ export default function App() {
       "/about": "About Verimarts",
       "/services": "Our services",
       "/contact": "Contact Verimarts",
+      "/photo-credits": "Photo credits",
     };
     document.title = `${titles[location.pathname] ?? "Vehicle details"} | Verimarts`;
     const description = document.querySelector('meta[name="description"]');
@@ -208,6 +210,7 @@ export default function App() {
             />
             <Route path="/services" element={<Services />} />
             <Route path="/contact" element={<Contact />} />
+            <Route path="/photo-credits" element={<PhotoCredits />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </main>
@@ -250,6 +253,7 @@ export default function App() {
               © {new Date().getFullYear()} Verimarts. All rights reserved.
             </span>
             <span>One owner · Direct enquiries</span>
+            <Link to="/photo-credits">Photo credits</Link>
             <button onClick={() => setIntro(true)}>
               <Play size={13} />
               Replay brand intro

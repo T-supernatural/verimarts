@@ -52,3 +52,5 @@ No confirmed inventory, articles, owner account, business contacts, or custom do
 ## Handover content
 
 The owner dashboard's **Add / update handover content** button imports or upgrades 32 listings with illustrative covers and placeholder NGN prices, plus 10 Journal articles with covers. Public demo/sample labels have been removed at the user's request. The catalogue must be replaced with confirmed client facts and actual item photographs. Existing owner edits are preserved. The updated supabase/demo-content.sql provides the same import through trusted SQL. See SETUP.md for details.
+
+Product illustrations have been replaced with 26 locally hosted photographs. Source and license details: PHOTO_CREDITS.md and the public /photo-credits page. Existing database image paths remain compatible, so no catalogue re-import is needed.

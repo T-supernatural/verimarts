@@ -10,6 +10,9 @@ const prices = {
 };
 const counts = {};
 const media = {};
+const productPhotos = JSON.parse(
+  await readFile("src/data/productPhotos.json", "utf8"),
+);
 function art(kind, title, n) {
   const accent = ["#FF0000", "#a70e20", "#c67628", "#438b53"][n % 4];
   const shapes = {
@@ -34,7 +37,9 @@ for (const item of data.listings) {
   const file = `${item.slug}.svg`;
   const path = `listings/${item.id}/handover-cover.svg`;
   if (item.category === "cars") media[path] = `/assets/car-${(i % 4) + 1}.webp`;
-  else {
+  else if (productPhotos.some((photo) => photo.slug === item.slug)) {
+    media[path] = productPhotos.find((photo) => photo.slug === item.slug).asset;
+  } else {
     await writeFile(
       `public/assets/handover/${file}`,
       art(item.category, item.title, i),

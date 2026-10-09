@@ -443,6 +443,7 @@ test("mobile pages fit, nav resets scroll, and fixed header follows scroll direc
     "/journal/published-test",
     "/about",
     "/contact",
+    "/photo-credits",
     "/portal",
   ]) {
     await page.goto(path);
