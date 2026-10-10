@@ -1,6 +1,6 @@
 # Verimarts marketplace
 
-The existing React/Vite/TypeScript storefront now supports a single owner's Cars, Property, Farm & Produce, Electronics, Other Goods, and Journal. The approved geometric V logo, racing red/black/silver styling, logo reveal, scroll animations, and direction-aware navbar are preserved.
+The existing React/Vite/TypeScript storefront now supports a single owner's Cars, Property, Farm & Produce, Livelong Farm, Paint Production, Electronics, Other Goods, and Journal. The approved geometric V logo, racing red/black/silver styling, logo reveal, scroll animations, and direction-aware navbar are preserved.
 
 Public pages show published content only. The separate owner build includes sign-in, password recovery, dashboard, listing and article editors, previews, publishing, availability, confirmed deletion, and ordered image uploads with cover selection. Transactions remain direct enquiries: no vendors, customer accounts, checkout, payments, or comments.
 
@@ -54,3 +54,7 @@ No confirmed inventory, articles, owner account, business contacts, or custom do
 The owner dashboard's **Add / update handover content** button imports or upgrades 32 listings with illustrative covers and placeholder NGN prices, plus 10 Journal articles with covers. Public demo/sample labels have been removed at the user's request. The catalogue must be replaced with confirmed client facts and actual item photographs. Existing owner edits are preserved. The updated supabase/demo-content.sql provides the same import through trusted SQL. See SETUP.md for details.
 
 Product illustrations have been replaced with 26 locally hosted photographs. Source and license details: PHOTO_CREDITS.md and the public /photo-credits page. Existing database image paths remain compatible, so no catalogue re-import is needed.
+
+## Livelong Farm and Paint Production
+
+The new `/livelong-farm` landing page includes the supplied farm products, aquaculture offerings, addresses and functional contact links. `/paint-production` provides an empty category until the owner publishes real products. The portal includes a farm-page editor and both listing categories, with existing gallery, publishing, availability and delete controls. Apply `supabase/migrations/202610100001_farm_and_paint.sql` before deploying the updated code. See SETUP.md for steps and the missing flyer verification note.

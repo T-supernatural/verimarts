@@ -10,9 +10,10 @@ export const categories = [
     description: "Review property information supplied by the owner.",
   },
   {
-    id: "farm-produce",
-    name: "Farm & Produce",
-    description: "Discover the owner’s agricultural offerings.",
+    id: "livelong-farm",
+    name: "Livelong Farm",
+    description:
+      "Verimarts’ farm produce and aquaculture section, handled by Livelong Farm.",
   },
   {
     id: "electronics",
@@ -20,12 +21,17 @@ export const categories = [
     description: "Browse electronics, appliances, and gadgets.",
   },
   {
+    id: "paint-production",
+    name: "Paint Production",
+    description: "Explore paint products and enquire directly.",
+  },
+  {
     id: "other-goods",
     name: "Other Goods",
     description: "Explore general merchandise from Verimarts.",
   },
 ] as const;
-export type Category = (typeof categories)[number]["id"];
+export type Category = (typeof categories)[number]["id"] | "farm-produce"; // Legacy database records remain readable.
 export const journalName = "Verimarts Journal"; // Working title: change here.
 export type Publication = "draft" | "published";
 export type Availability =
@@ -75,6 +81,23 @@ export const fields: Record<
   Category,
   { key: string; label: string; options?: string[]; numeric?: boolean }[]
 > = {
+  "livelong-farm": [
+    {
+      key: "offering_type",
+      label: "Offering group",
+      options: ["Farm products", "Aquaculture"],
+    },
+    { key: "produce", label: "Product or service name" },
+    { key: "unit", label: "Unit or pack size" },
+    { key: "quantity", label: "Quantity" },
+    { key: "origin", label: "Origin" },
+    { key: "harvest", label: "Harvest / rearing notes" },
+  ],
+  "paint-production": [
+    { key: "paint_type", label: "Paint type" },
+    { key: "colour", label: "Colour / colour options" },
+    { key: "volume", label: "Size / volume (include unit)" },
+  ],
   cars: [
     { key: "make", label: "Make" },
     { key: "model", label: "Model" },

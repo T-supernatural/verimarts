@@ -1,7 +1,21 @@
 import { useCallback, useEffect, useRef, useState } from "react";
-import { Link, NavLink, Route, Routes, useLocation } from "react-router-dom";
+import {
+  Link,
+  Navigate,
+  NavLink,
+  Route,
+  Routes,
+  useLocation,
+} from "react-router-dom";
 import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
-import { ArrowRight, ArrowUpRight, Menu, X, Play } from "lucide-react";
+import {
+  ArrowRight,
+  ArrowUpRight,
+  ChevronDown,
+  Menu,
+  X,
+  Play,
+} from "lucide-react";
 import { LogoTransparencyFilter } from "./Motion";
 import { About, Services, Contact, NotFound } from "./pages";
 import {
@@ -13,9 +27,12 @@ import {
 } from "./marketplace/Public";
 import { categories, journalName } from "./data/marketplace";
 import { PhotoCredits } from "./marketplace/PhotoCredits";
+import { LivelongFarm } from "./marketplace/Farm";
+import { business, whatsappUrl } from "./config/business";
 const links = [
   ["/", "Home"],
-  ["/farm-produce", "Farm & Produce"],
+  ["/livelong-farm", "Livelong Farm"],
+  ["/paint-production", "Paint Production"],
   ["/shop", "Shop All"],
   ["/cars", "Cars"],
   ["/property", "Property"],
@@ -91,8 +108,32 @@ function Intro({ close }: { close: () => void }) {
 export default function App() {
   const [intro, setIntro] = useState(!sessionSeen());
   const [menu, setMenu] = useState(false);
+  const shopMenu = useRef<HTMLDetailsElement>(null);
   const [headerHidden, setHeaderHidden] = useState(false);
   const location = useLocation();
+  const closeNavigation = () => {
+    setMenu(false);
+    if (shopMenu.current) shopMenu.current.open = false;
+    window.scrollTo({ top: 0, behavior: "instant" });
+  };
+  useEffect(() => {
+    const outside = (event: PointerEvent) => {
+      if (shopMenu.current && !shopMenu.current.contains(event.target as Node))
+        shopMenu.current.open = false;
+    };
+    const escape = (event: KeyboardEvent) => {
+      if (event.key === "Escape" && shopMenu.current?.open) {
+        shopMenu.current.open = false;
+        shopMenu.current.querySelector("summary")?.focus();
+      }
+    };
+    document.addEventListener("pointerdown", outside);
+    document.addEventListener("keydown", escape);
+    return () => {
+      document.removeEventListener("pointerdown", outside);
+      document.removeEventListener("keydown", escape);
+    };
+  }, []);
   useEffect(() => {
     let previous = Math.max(0, window.scrollY);
     const onScroll = () => {
@@ -155,19 +196,58 @@ export default function App() {
             className={menu ? "nav open" : "nav"}
             aria-label="Main navigation"
           >
-            {links.map(([to, label]) => (
-              <NavLink
-                end={to === "/"}
-                key={to}
-                to={to}
-                onClick={() => {
-                  setMenu(false);
-                  window.scrollTo({ top: 0, behavior: "instant" });
-                }}
+            <NavLink to="/" end onClick={closeNavigation}>
+              Home
+            </NavLink>
+            <details className="shop-navigation" ref={shopMenu}>
+              <summary
+                className={
+                  categories.some(
+                    (c) =>
+                      c.id !== "livelong-farm" &&
+                      location.pathname.startsWith(`/${c.id}`),
+                  ) || location.pathname === "/shop"
+                    ? "active"
+                    : ""
+                }
               >
-                {label}
-              </NavLink>
-            ))}
+                Shop <ChevronDown size={15} />
+              </summary>
+              <div className="shop-navigation-panel">
+                <span className="shop-navigation-label">Explore Verimarts</span>
+                <NavLink to="/shop" onClick={closeNavigation}>
+                  All listings <ArrowUpRight size={16} />
+                </NavLink>
+                {categories
+                  .filter((category) => category.id !== "livelong-farm")
+                  .map((category) => (
+                    <NavLink
+                      key={category.id}
+                      to={`/${category.id}`}
+                      onClick={closeNavigation}
+                    >
+                      {category.name}
+                      <ArrowUpRight size={15} />
+                    </NavLink>
+                  ))}
+              </div>
+            </details>
+            {links
+              .filter(([to]) =>
+                ["/livelong-farm", "/journal", "/about", "/contact"].includes(
+                  to,
+                ),
+              )
+              .map(([to, label]) => (
+                <NavLink
+                  end={to === "/"}
+                  key={to}
+                  to={to}
+                  onClick={closeNavigation}
+                >
+                  {label}
+                </NavLink>
+              ))}
           </nav>
           <Link
             to="/shop"
@@ -189,11 +269,21 @@ export default function App() {
           <Routes>
             <Route path="/" element={<Home />} />
             <Route path="/shop" element={<MarketplaceBrowse />} />
+            <Route
+              path="/farm-produce"
+              element={<Navigate to="/livelong-farm" replace />}
+            />
             {categories.map((c) => (
               <Route
                 key={c.id}
                 path={`/${c.id}`}
-                element={<MarketplaceBrowse category={c.id} />}
+                element={
+                  c.id === "livelong-farm" ? (
+                    <LivelongFarm />
+                  ) : (
+                    <MarketplaceBrowse category={c.id} />
+                  )
+                }
               />
             ))}
             <Route
@@ -215,6 +305,16 @@ export default function App() {
           </Routes>
         </main>
         <footer>
+          <div className="footer-invitation">
+            <div>
+              <span className="eyebrow">FIND YOUR NEXT POSSIBILITY</span>
+              <h2>Take a closer look.</h2>
+              <p>Explore the catalogue. Talk directly with Verimarts.</p>
+            </div>
+            <Link className="button" to="/shop">
+              Explore listings <ArrowUpRight size={20} />
+            </Link>
+          </div>
           <div className="footer-top">
             <div>
               <img
@@ -229,23 +329,46 @@ export default function App() {
               </p>
             </div>
             <div>
-              <span className="eyebrow">EXPLORE</span>
-              {links.slice(1).map(([to, label]) => (
-                <Link key={to} to={to}>
-                  {label}
+              <span className="eyebrow">THE MARKETPLACE</span>
+              {categories.map((category) => (
+                <Link key={category.id} to={`/${category.id}`}>
+                  {category.name}
                 </Link>
               ))}
             </div>
             <div>
-              <span className="eyebrow">LET’S TALK</span>
-              <p>
-                Discover an item you like?
-                <br />
-                Start with an enquiry.
-              </p>
+              <span className="eyebrow">DISCOVER VERIMARTS</span>
+              <Link to="/about">Our story</Link>
+              <Link to="/journal">{journalName}</Link>
               <Link to="/contact">
                 Contact Verimarts <ArrowUpRight size={15} />
               </Link>
+              <Link className="footer-farm-note" to="/livelong-farm">
+                <span>
+                  Livelong Farm<strong>A Verimarts subsidiary</strong>
+                </span>
+                <ArrowUpRight size={18} />
+              </Link>
+            </div>
+            <div className="footer-contact">
+              <span className="eyebrow">LET’S TALK</span>
+              <a
+                className="footer-whatsapp"
+                href={whatsappUrl()}
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                WhatsApp enquiry <ArrowUpRight size={18} />
+              </a>
+              <a href={`tel:${business.phone}`}>{business.phone}</a>
+              <a href={`mailto:${business.email}`}>{business.email}</a>
+              <p>WhatsApp: {business.whatsapp}</p>
+              <button
+                className="footer-top-button"
+                onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
+              >
+                Back to top ↑
+              </button>
             </div>
           </div>
           <div className="footer-bottom">

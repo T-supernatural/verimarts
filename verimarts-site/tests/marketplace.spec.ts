@@ -2,6 +2,50 @@ import { test, expect } from "@playwright/test";
 import type { Page } from "@playwright/test";
 import { Buffer } from "node:buffer";
 import type { Listing, Article, ListingImage } from "../src/data/marketplace";
+import type { FarmProfile } from "../src/data/farm";
+test("compact navigation and confirmed business contacts", async ({ page }) => {
+  await mockBackend(page);
+  await page.addInitScript(() => sessionStorage.setItem("verimarts-intro", "seen"));
+  await page.setViewportSize({ width: 1366, height: 900 });
+  await page.goto("/contact");
+  const nav = page.getByRole("navigation", { name: "Main navigation" });
+  await expect(page.getByRole("button", { name: "Open navigation" })).toBeHidden();
+  await expect(nav.getByRole("link", { name: "Livelong Farm", exact: true })).toHaveCount(1);
+  await expect(nav.getByRole("link", { name: "Cars", exact: true })).toBeHidden();
+  await nav.locator("summary").click();
+  await expect(nav.getByRole("link", { name: "Cars", exact: true })).toBeVisible();
+  await page.keyboard.press("Escape");
+  await expect(nav.getByRole("link", { name: "Cars", exact: true })).toBeHidden();
+  await expect(page.locator("main").getByRole("link", { name: "08144669205", exact: true })).toBeVisible();
+  await expect(page.locator('main a[href="mailto:Thisislivelong@gmail.com"]')).toBeVisible();
+  await expect(page.locator('main a[href^="https://wa.me/2349070419149"]')).toHaveCount(2);
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.getByRole("button", { name: "Open navigation" }).click();
+  await nav.locator("summary").click();
+  await nav.getByRole("link", { name: "Cars", exact: true }).click();
+  await expect(page).toHaveURL(/\/cars$/);
+  await expect(page.getByRole("button", { name: "Open navigation" })).toBeVisible();
+});
+const farmFixture: FarmProfile = {
+  id: "livelong-farm",
+  heading: "Organic Farm Produce & Aquaculture.",
+  intro: "",
+  main_address: "No. 15, Ayinde Street, Iyana-Cele, Ogun State.",
+  branch_address:
+    "Abijo by Destiny Home Estate, Sangotedo, Ajah, Lekki, Lagos.",
+  whatsapp: "09070419149",
+  phone: "08144669205",
+  email: "thisislivelong@gmail.com",
+  website: "thisislivelong.com",
+  products: [
+    "Fruit smoothies and parfait",
+    "Fresh palm oil",
+    "Fresh live catfish",
+    "Cassava farm / cassava produce",
+  ],
+  aquaculture: ["Pond rental", "Fingerlings and juvenile fish rearing"],
+  status: "published",
+};
 const png = Buffer.from(
   "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+aD1sAAAAASUVORK5CYII=",
   "base64",
@@ -84,6 +128,7 @@ function fixtures() {
 }
 async function mockBackend(page: Page, owner = true) {
   const state = fixtures();
+  let farm = { ...farmFixture };
   const uploads: string[] = [];
   await page.route("http://127.0.0.1:54321/**", async (route) => {
     const request = route.request();
@@ -115,6 +160,18 @@ async function mockBackend(page: Page, owner = true) {
     }
     if (url.pathname.includes("/auth/v1/")) return respond({});
     if (url.pathname.endsWith("/rpc/is_owner")) return respond(owner);
+    if (url.pathname.endsWith("/business_pages")) {
+      if (method === "PATCH") {
+        farm = { ...farm, ...request.postDataJSON() };
+        return respond(null);
+      }
+      return respond(
+        url.searchParams.get("status") === "eq.published" &&
+          farm.status !== "published"
+          ? null
+          : farm,
+      );
+    }
     if (url.pathname.endsWith("/listing_images")) {
       if (method === "GET")
         return respond(
@@ -313,6 +370,164 @@ test("owner imports demo catalogue once without overwriting edits", async ({
   expect(state.listings.length).toBe(35);
 });
 
+test("Livelong Farm shows supplied offerings, contacts and encoded item enquiries", async ({
+  page,
+}) => {
+  const { state } = await mockBackend(page);
+  state.listings.push({
+    ...state.listings[0],
+    id: "77777777-7777-4777-8777-777777777777",
+    category: "livelong-farm",
+    title: "Palm oil & jars",
+    slug: "farm-palm-oil",
+    details: { unit: "litre" },
+  });
+  await page.goto("/livelong-farm");
+  await expect(
+    page.getByRole("heading", {
+      name: "Organic Farm Produce & Aquaculture.",
+      exact: true,
+    }),
+  ).toBeVisible();
+  for (const name of [...farmFixture.products, ...farmFixture.aquaculture])
+    await expect(
+      page.getByRole("heading", { name, exact: true }),
+    ).toBeVisible();
+  await expect(page.getByText(farmFixture.main_address)).toBeVisible();
+  await expect(
+    page.getByRole("link", { name: "09070419149", exact: true }),
+  ).toHaveAttribute("href", /^https:\/\/wa.me\/2349070419149\?text=/);
+  await expect(
+    page.locator("main").getByRole("link", { name: "08144669205", exact: true }),
+  ).toHaveAttribute("href", "tel:08144669205");
+  await expect(
+    page.getByRole("link", { name: "thisislivelong@gmail.com", exact: true }),
+  ).toHaveAttribute("href", "mailto:thisislivelong@gmail.com");
+  await expect(
+    page.getByRole("link", { name: "thisislivelong.com", exact: true }),
+  ).toHaveAttribute("href", "https://thisislivelong.com/");
+  await page.goto("/listings/farm-palm-oil");
+  const url = new URL(
+    (await page
+      .getByRole("link", { name: "Enquire on WhatsApp" })
+      .getAttribute("href"))!,
+  );
+  expect(url.pathname).toBe("/2349070419149");
+  expect(url.searchParams.get("text")).toContain("Palm oil & jars");
+});
+
+test("farm leads with products and grouped footer fits desktop and mobile", async ({ page }) => {
+  await mockBackend(page);
+  await page.addInitScript(() => sessionStorage.setItem("verimarts-intro", "seen"));
+  for (const width of [1366, 390]) {
+    await page.setViewportSize({ width, height: 900 });
+    await page.goto("/livelong-farm");
+    await expect(page.locator(".farm-hero .vehicle-card")).toHaveCount(1);
+    await expect(page.locator(".farm-hero")).toContainText("Test produce");
+    await expect(page.locator(".farm-hero")).toContainText("owned and run by Livelong Farm");
+    expect(await page.locator("#farm-products").evaluate((el) => Boolean(el.compareDocumentPosition(document.querySelector(".farm-contact-section")!) & Node.DOCUMENT_POSITION_FOLLOWING))).toBe(true);
+    await page.locator("footer").scrollIntoViewIfNeeded();
+    await expect(page.locator("footer")).toContainText("THE MARKETPLACE");
+    await expect(page.locator("footer")).toContainText("DISCOVER VERIMARTS");
+    expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true);
+    await page.getByRole("button", { name: "Back to top" }).click();
+    await expect.poll(() => page.evaluate(() => window.scrollY)).toBe(0);
+  }
+});
+
+test("owner manages farm page text, preview and publication", async ({
+  page,
+}) => {
+  await mockBackend(page);
+  await login(page);
+  await page
+    .getByRole("button", { name: "Livelong Farm", exact: true })
+    .click();
+  await page
+    .getByLabel("Introduction", { exact: true })
+    .fill("Owner-confirmed farm introduction.");
+  await page
+    .getByRole("button", { name: "Save farm page", exact: true })
+    .click();
+  await expect(page.getByRole("status")).toHaveText("Farm page published.");
+  await page.getByRole("button", { name: "Preview farm page" }).click();
+  await expect(page.getByRole("dialog")).toContainText(
+    "Owner-confirmed farm introduction.",
+  );
+  await page.getByRole("button", { name: "Close preview" }).click();
+  await page.getByRole("button", { name: "Unpublish farm page" }).click();
+  await expect(page.getByRole("status")).toHaveText(
+    "Farm page saved as a private draft.",
+  );
+  await page.goto("/livelong-farm");
+  await expect(
+    page.getByText("Farm information will appear when published."),
+  ).toBeVisible();
+  await expect(
+    page.getByText("Owner-confirmed farm introduction."),
+  ).toHaveCount(0);
+});
+
+test("paint starts empty and owner can upload, publish and change availability", async ({
+  page,
+}) => {
+  const { state, uploads } = await mockBackend(page);
+  await page.goto("/paint-production");
+  await expect(
+    page.getByRole("heading", { name: "No paint products published yet." }),
+  ).toBeVisible();
+  await login(page);
+  await page
+    .getByRole("button", { name: "Paint Production", exact: true })
+    .click();
+  await page
+    .getByRole("button", { name: "Create listing", exact: true })
+    .click();
+  await expect(
+    page.getByLabel("Listing category", { exact: true }),
+  ).toHaveValue("paint-production");
+  await page.getByLabel("Title", { exact: true }).fill("Owner test paint");
+  await page.getByRole("button", { name: "Generate from title" }).click();
+  await page
+    .getByLabel("Description", { exact: true })
+    .fill("Owner-supplied paint description.");
+  await page.getByLabel("Paint type", { exact: true }).fill("Owner test type");
+  await page
+    .getByLabel("Colour / colour options", { exact: true })
+    .fill("Owner test colour");
+  await page
+    .getByLabel("Size / volume (include unit)", { exact: true })
+    .fill("Owner test volume");
+  await page
+    .locator('input[type="file"]')
+    .setInputFiles({ name: "paint.png", mimeType: "image/png", buffer: png });
+  await page
+    .getByRole("button", { name: "Save and publish", exact: true })
+    .click();
+  await expect(
+    page.getByRole("heading", { name: "Listings", exact: true }),
+  ).toBeVisible();
+  expect(uploads.length).toBe(1);
+  await page
+    .getByLabel("Availability for Owner test paint")
+    .selectOption("unavailable");
+  await expect
+    .poll(
+      () =>
+        state.listings.find((item) => item.title === "Owner test paint")
+          ?.availability,
+    )
+    .toBe("unavailable");
+  expect(
+    state.listings.find((item) => item.title === "Owner test paint")?.details
+      .paint_type,
+  ).toBe("Owner test type");
+  await page.goto("/paint-production");
+  await expect(
+    page.getByRole("heading", { name: "Owner test paint", exact: true }),
+  ).toBeVisible();
+});
+
 test("owner can upload, reorder, preview, publish, unpublish and delete a listing", async ({
   page,
 }) => {
@@ -427,15 +642,17 @@ test("mobile pages fit, nav resets scroll, and fixed header follows scroll direc
   await page.getByRole("button", { name: "Open navigation" }).click();
   await page
     .getByRole("navigation", { name: "Main navigation" })
-    .getByRole("link", { name: "Farm & Produce" })
+    .getByRole("link", { name: "Livelong Farm", exact: true })
     .click();
-  await expect(page).toHaveURL(/farm-produce$/);
+  await expect(page).toHaveURL(/livelong-farm$/);
   for (const path of [
     "/",
     "/shop",
     "/cars",
     "/property",
     "/farm-produce",
+    "/livelong-farm",
+    "/paint-production",
     "/electronics",
     "/other-goods",
     "/journal",

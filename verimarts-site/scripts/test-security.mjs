@@ -228,11 +228,117 @@ try {
     10,
     "published samples are visible publicly",
   );
-  await equal("select count(*)::int as value from public.listing_images where listing_id::text like 'de000000-%'",32,"handover listings have image metadata");
-  await equal("select count(*)::int as value from public.listings where id::text like 'de000000-%' and price>0 and currency='NGN'",32,"handover listings have NGN prices");
-  await db.exec("reset role; update public.listings set title='Demo — Family sedan',slug='demo-family-sedan',price=null,currency=null where slug='family-sedan'");
+  await equal(
+    "select count(*)::int as value from public.listing_images where listing_id::text like 'de000000-%'",
+    32,
+    "handover listings have image metadata",
+  );
+  await equal(
+    "select count(*)::int as value from public.listings where id::text like 'de000000-%' and price>0 and currency='NGN'",
+    32,
+    "handover listings have NGN prices",
+  );
+  await db.exec(
+    "reset role; update public.listings set title='Demo — Family sedan',slug='demo-family-sedan',price=null,currency=null where slug='family-sedan'",
+  );
   await db.exec(demoSeed);
-  await equal("select title='Family sedan' and price=12500000 and slug='family-sedan' as value from public.listings where id='de000000-0000-4000-8000-000000000002'",true,"seed upgrades earlier labelled catalogue");
+  await equal(
+    "select title='Family sedan' and price=12500000 and slug='family-sedan' as value from public.listings where id='de000000-0000-4000-8000-000000000002'",
+    true,
+    "seed upgrades earlier labelled catalogue",
+  );
+  await db.exec("reset role");
+  await db.exec(
+    await readFile(
+      "supabase/migrations/202610100001_farm_and_paint.sql",
+      "utf8",
+    ),
+  );
+  await equal(
+    "select count(*)::int as value from public.listings where id::text like 'de000000-%'",
+    32,
+    "new migration preserves existing listings",
+  );
+  await role("anon");
+  await equal(
+    "select whatsapp='09070419149' as value from public.business_pages where id='livelong-farm'",
+    true,
+    "public farm contacts match supplied information",
+  );
+  await denied(
+    "update public.business_pages set heading='Unauthorized'",
+    "anonymous visitor cannot edit farm page",
+  );
+  await role("authenticated", outsider);
+  await db.exec("update public.business_pages set heading='Unauthorized'");
+  await equal(
+    "select heading='Organic Farm Produce & Aquaculture.' as value from public.business_pages",
+    true,
+    "unrelated account cannot change farm information",
+  );
+  await denied(
+    "insert into public.listings(category,title,slug,description,status) values('paint-production','Unauthorized paint','unauthorized-paint','No','published')",
+    "unrelated account cannot create paint products",
+  );
+  await role("authenticated", owner);
+  await db.exec(
+    "update public.business_pages set status='draft'; insert into public.listings(category,title,slug,description,details,status) values('livelong-farm','Test catfish','test-catfish','Confirmed test data','{\"offering_type\":\"Farm products\",\"unit\":\"kg\"}','draft'),('paint-production','Test paint','test-paint','Confirmed test data','{\"paint_type\":\"Test type\",\"colour\":\"Test colour\",\"volume\":\"Test volume\"}','draft')",
+  );
+  await role("anon");
+  await equal(
+    "select count(*)::int as value from public.business_pages",
+    0,
+    "farm page drafts are private",
+  );
+  await equal(
+    "select count(*)::int as value from public.listings where category in ('livelong-farm','paint-production')",
+    0,
+    "new category drafts are private",
+  );
+  await role("authenticated", owner);
+  await db.exec(
+    "update public.business_pages set status='published'; update public.listings set status='published' where slug in ('test-catfish','test-paint')",
+  );
+  await denied(
+    "update public.listings set details='{\"made_up_field\":\"bad\"}' where slug='test-paint'",
+    "paint fields are enforced at database level",
+  );
+  await denied(
+    "update public.business_pages set products='[123]'",
+    "farm offering names are validated",
+  );
+  await role("anon");
+  await equal(
+    "select count(*)::int as value from public.listings where category in ('livelong-farm','paint-production')",
+    2,
+    "published new category listings are public",
+  );
+  await db.exec("reset role");
+  await db.exec(
+    "insert into public.listings(category,title,slug,description,details,status) values('farm-produce','Legacy farm','legacy-farm','Existing farm listing','{\"origin\":\"Owner supplied origin\"}','draft')",
+  );
+  await db.exec(
+    await readFile(
+      "supabase/migrations/202610100002_merge_farm_categories.sql",
+      "utf8",
+    ),
+  );
+  await equal(
+    "select count(*)::int as value from public.listings where category='farm-produce'",
+    0,
+    "legacy farm category is merged",
+  );
+  await equal(
+    "select details->>'origin' as value from public.listings where slug='legacy-farm' and category='livelong-farm'",
+    "Owner supplied origin",
+    "merge preserves farm details",
+  );
+  await role("anon");
+  await equal(
+    "select count(*)::int as value from public.listings where slug='legacy-farm'",
+    0,
+    "merged draft remains private",
+  );
   console.log(
     `${assertions} PostgreSQL RLS, authorization, validation and Storage-policy assertions passed.`,
   );

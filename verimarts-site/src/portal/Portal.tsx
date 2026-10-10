@@ -13,6 +13,7 @@ import {
   PreviewDialog,
 } from "./Editors";
 import { ListingPreview, ArticlePreview } from "../marketplace/Public";
+import { FarmEditor } from "./FarmEditor";
 function errorMessage(error: unknown) {
   return error instanceof Error
     ? error.message
@@ -262,7 +263,7 @@ export default function Portal() {
 }
 function OwnerWorkspace() {
   const [demoNotice, setDemoNotice] = useState("");
-  const [tab, setTab] = useState<"dashboard" | "listings" | "journal">(
+  const [tab, setTab] = useState<"dashboard" | "listings" | "journal" | "farm">(
     "dashboard",
   );
   const [listings, setListings] = useState<Listing[]>([]);
@@ -332,7 +333,7 @@ function OwnerWorkspace() {
   return (
     <>
       <nav className="portal-nav" aria-label="Owner navigation">
-        {(["dashboard", "listings", "journal"] as const).map((name) => (
+        {(["dashboard", "listings", "journal", "farm"] as const).map((name) => (
           <button
             key={name}
             aria-current={tab === name ? "page" : undefined}
@@ -346,11 +347,26 @@ function OwnerWorkspace() {
               setStatus("");
             }}
           >
-            {name === "journal"
-              ? journalName
-              : name[0].toUpperCase() + name.slice(1)}
+            {name === "farm"
+              ? "Livelong Farm"
+              : name === "journal"
+                ? journalName
+                : name[0].toUpperCase() + name.slice(1)}
           </button>
         ))}
+        <button
+          className="button secondary"
+          onClick={() => {
+            setTab("listings");
+            setCategory("paint-production");
+            setQuery("");
+            setStatus("");
+            setEditListing(null);
+            setEditArticle(null);
+          }}
+        >
+          Paint Production
+        </button>
       </nav>
       {loading ? (
         <p role="status">Loading owner content…</p>
@@ -365,6 +381,15 @@ function OwnerWorkspace() {
           key={editArticle.id}
           initial={editArticle}
           onDone={done}
+        />
+      ) : tab === "farm" ? (
+        <FarmEditor
+          onManage={() => {
+            setTab("listings");
+            setCategory("livelong-farm");
+            setQuery("");
+            setStatus("");
+          }}
         />
       ) : tab === "dashboard" ? (
         <>
@@ -461,7 +486,12 @@ function OwnerWorkspace() {
               className="button primary"
               onClick={() =>
                 tab === "listings"
-                  ? setEditListing(newListing())
+                  ? setEditListing({
+                      ...newListing(),
+                      ...(category
+                        ? { category: category as Listing["category"] }
+                        : {}),
+                    })
                   : setEditArticle(newArticle())
               }
             >

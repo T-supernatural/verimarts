@@ -12,7 +12,7 @@ import {
   Clock,
   Phone,
 } from "lucide-react";
-import { business } from "./config/business";
+import { business, whatsappUrl } from "./config/business";
 import { EnquiryButtons } from "./EnquiryButtons";
 function ContactCallout() {
   return (
@@ -178,6 +178,10 @@ export function Contact() {
             </div>
           )}
           <div className="contact-details">
+            <a href={whatsappUrl()} target="_blank" rel="noopener noreferrer">
+              <MessageCircle size={20} />
+              WhatsApp: {business.whatsapp}
+            </a>
             {business.phone && (
               <a href={`tel:${business.phone.replace(/[^+\d]/g, "")}`}>
                 <Phone size={20} />

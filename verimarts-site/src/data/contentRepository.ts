@@ -1,6 +1,7 @@
 import { requireBackend, supabase } from "../lib/supabase";
 import type { Listing, Article, ListingImage } from "./marketplace";
 import handoverMedia from "./handoverMedia.json";
+import type { FarmProfile } from "./farm";
 const bucket = "catalogue-media";
 function check(error: { message: string } | null) {
   if (error) throw new Error(error.message);
@@ -18,6 +19,10 @@ export async function withListingImages(items: Listing[]) {
   return Promise.all(
     items.map(async (item) => ({
       ...item,
+      category:
+        item.category === "farm-produce"
+          ? ("livelong-farm" as const)
+          : item.category,
       images: await Promise.all(
         (item.images || [])
           .sort((a, b) => a.position - b.position)
@@ -35,6 +40,28 @@ async function withCovers(items: Article[]) {
   );
 }
 export const contentRepository = {
+  async farmProfile(owner = false): Promise<FarmProfile | null> {
+    if (!supabase) return null;
+    let query = supabase
+      .from("business_pages")
+      .select("*")
+      .eq("id", "livelong-farm");
+    if (!owner) query = query.eq("status", "published");
+    const { data, error } = await query.maybeSingle();
+    check(error);
+    if (!data || (!owner && data.status !== "published")) return null;
+    return data as FarmProfile;
+  },
+  async saveFarmProfile(profile: FarmProfile) {
+    check(
+      (
+        await requireBackend()
+          .from("business_pages")
+          .update(profile)
+          .eq("id", "livelong-farm")
+      ).error,
+    );
+  },
   async addDemoContent() {
     const { default: samples } = await import("./demoContent.json");
     const client = requireBackend();

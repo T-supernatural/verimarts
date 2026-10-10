@@ -12,6 +12,7 @@ import {
   Search,
   ChevronLeft,
   ChevronRight,
+  Paintbrush,
 } from "lucide-react";
 import { Reveal, HeroImage } from "../Motion";
 import { EnquiryButtons } from "../EnquiryButtons";
@@ -23,12 +24,15 @@ import {
 } from "../data/marketplace";
 import type { Listing, Article, Category } from "../data/marketplace";
 import { contentRepository } from "../data/contentRepository";
+import { FarmEnquiry } from "./Farm";
 const icons = {
   cars: CarFront,
   property: Building2,
   "farm-produce": Sprout,
   electronics: Monitor,
   "other-goods": Package,
+  "livelong-farm": Sprout,
+  "paint-production": Paintbrush,
 };
 export function usePublishedContent() {
   const [data, setData] = useState<{
@@ -206,9 +210,9 @@ export function MarketplaceHome() {
             <Link className="button primary" to="/shop">
               Explore listings <ArrowUpRight size={19} />
             </Link>
-            <Link className="button glass" to="/farm-produce">
+            <Link className="button glass" to="/livelong-farm">
               <Sprout size={19} />
-              Farm & Produce
+              Livelong Farm
             </Link>
           </div>
         </div>
@@ -247,7 +251,7 @@ export function MarketplaceHome() {
             return (
               <Link
                 key={c.id}
-                className={`market-category ${c.id === "farm-produce" ? "farm-highlight" : ""}`}
+                className={`market-category ${c.id === "livelong-farm" ? "farm-highlight" : ""}`}
                 to={`/${c.id}`}
               >
                 <Icon size={28} />
@@ -271,26 +275,30 @@ export function MarketplaceHome() {
           <span className="eyebrow red-text">FARM & PRODUCE</span>
           <h2>A core part of Verimarts.</h2>
           <p>
-            Explore the owner’s agricultural listings, with units, quantities,
-            availability, and harvest details where provided.
+            Verimarts’ farm section is handled by Livelong Farm. Explore
+            listings with units, quantities, availability, and harvest details
+            where provided.
           </p>
-          <Link className="button primary" to="/farm-produce">
-            Explore Farm & Produce <ArrowUpRight size={18} />
+          <Link className="button primary" to="/livelong-farm">
+            Discover Livelong Farm <ArrowUpRight size={18} />
           </Link>
+          <p className="small">
+            Livelong Farm · Organic Farm Produce & Aquaculture.
+          </p>
         </div>
         <div>
           <h3>From the catalogue</h3>
           {state.listings
-            .filter((i) => i.category === "farm-produce")
+            .filter((i) => i.category === "livelong-farm")
             .slice(0, 1)
             .map((i) => (
               <ListingCard key={i.id} item={i} />
             ))}
           {!state.loading &&
             !state.error &&
-            !state.listings.some((i) => i.category === "farm-produce") && (
+            !state.listings.some((i) => i.category === "livelong-farm") && (
               <p className="muted">
-                Farm & Produce listings will appear here when published.
+                Livelong Farm listings will appear here when published.
               </p>
             )}
         </div>
@@ -389,7 +397,13 @@ export function MarketplaceHome() {
     </>
   );
 }
-export function MarketplaceBrowse({ category }: { category?: Category }) {
+export function MarketplaceBrowse({
+  category,
+  embedded = false,
+}: {
+  category?: Category;
+  embedded?: boolean;
+}) {
   const state = usePublishedContent();
   const [params, setParams] = useSearchParams();
   const get = (k: string) => params.get(k) || "";
@@ -437,7 +451,7 @@ export function MarketplaceBrowse({ category }: { category?: Category }) {
     <Reveal className="section showroom">
       <div className="page-heading">
         <span className="eyebrow red-text">VERIMARTS MARKETPLACE</span>
-        <h1>{title}</h1>
+        {embedded ? <h2>Published farm listings</h2> : <h1>{title}</h1>}
         <p>
           {categories.find((c) => c.id === category)?.description ||
             "Browse listings published by the owner. Contact Verimarts to confirm the details."}
@@ -563,7 +577,21 @@ export function MarketplaceBrowse({ category }: { category?: Category }) {
           <ListingCard key={i.id} item={i} />
         ))}
       </div>
-      {!state.loading && !state.error && !items.length && <Empty />}
+      {!state.loading &&
+        !state.error &&
+        !items.length &&
+        (category === "paint-production" ? (
+          <div className="empty-state">
+            <h2>No paint products published yet.</h2>
+            <p>
+              Product details and prices will appear here when provided by the
+              owner.
+            </p>
+            <EnquiryButtons compact />
+          </div>
+        ) : (
+          <Empty />
+        ))}
     </Reveal>
   );
 }
@@ -650,7 +678,11 @@ export function ListingPreview({ item }: { item: Listing }) {
             Sale or rental terms have not been provided.
           </p>
         )}
-        <EnquiryButtons vehicle={item.title} />
+        {item.category === "livelong-farm" ? (
+          <FarmEnquiry item={item.title} />
+        ) : (
+          <EnquiryButtons vehicle={item.title} />
+        )}
         <div className="detail-note">
           Confirm availability, pricing, and transaction details directly with
           Verimarts. An enquiry does not confirm a purchase or reservation.

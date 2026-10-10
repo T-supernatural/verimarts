@@ -197,7 +197,7 @@ export function newListing(): Listing {
   const now = new Date().toISOString();
   return {
     id: crypto.randomUUID(),
-    category: "farm-produce",
+    category: "livelong-farm",
     title: "",
     slug: "",
     description: "",
@@ -327,6 +327,7 @@ export function ListingEditor({
             <label>
               Listing category
               <select
+                aria-label="Listing category"
                 value={item.category}
                 onChange={(e) =>
                   setItem((current) => ({

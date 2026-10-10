@@ -113,3 +113,25 @@ Dataset: src/data/demoContent.json. Asset/SQL preparation: scripts/prepare-hando
 All 26 non-car product illustrations now resolve to locally hosted JPEG photographs. Existing car photographs remain in place. No Supabase update or re-import is needed: the registered handover paths map to the new assets through src/data/handoverMedia.json. Redeploy the updated code/assets on both Netlify projects to show the photos on the public site and in portal previews.
 
 Photo source, author and license records are in src/data/productPhotos.json and PHOTO_CREDITS.md. The public /photo-credits page is linked in the footer. Wikimedia photographs retain their individual Creative Commons licenses; Pexels photographs use the Pexels License. These are illustrative stock photographs, not verified actual-item pictures. The client's actual uploads continue to use private Supabase Storage. The handover preparation script preserves the photographic mappings.
+
+## Livelong Farm and Paint Production update
+
+Apply only the new migration `supabase/migrations/202610100001_farm_and_paint.sql` as **postgres** in Supabase SQL Editor, after the original marketplace migration. Do not rerun the original migration or owner-account insertion. The new migration preserves existing listings, media and articles, extends category validation, and adds `business_pages` with published-only public reads and owner-only writes. Existing image/Storage policies protect uploads in the new listing categories. No new environment variables are required.
+
+Public routes: `/livelong-farm` and `/paint-production`. Both appear in navigation, homepage category discovery and the footer. The existing `/farm-produce` category remains available; its earlier handover entries are not presented as confirmed Livelong Farm stock. The farm page displays the six offerings and exact contacts provided in the request. It makes no third-party organic-certification claim, invents no prices or availability, and links enquiries to the farm's supplied WhatsApp number. Paint Production starts empty.
+
+Owner portal: open **Livelong Farm** to edit its heading, introduction, addresses, displayed phone/WhatsApp numbers, email, website and offering groups; preview, save, publish or unpublish the page. Choose **Manage farm listings** for farm products and aquaculture services. Create those listings with the Livelong Farm category, group, name, quantity/unit and optional notes; normal images, prices, availability and publication controls apply. Choose **Paint Production** to filter and create paint listings with optional type, colour/options and size/volume. Both categories reuse the existing gallery editor and confirmed-delete workflow.
+
+Resource review: the requested `WhatsApp Image 2026-10-09 at 19.42.35.jpeg` was not found in the workspace or supplied attachments. The implementation uses the user's explicit transcription; the original flyer still needs visual verification. No flyer artwork or unconfirmed slogan was added, and Verimarts branding is unchanged.
+
+Still needed from the client: actual paint names/brand if applicable, descriptions, paint types, colours, sizes/volumes, confirmed prices/currency, availability and real photos. Farm listing prices, quantities, units, stock, actual-item photos and service details must also be provided by the owner. No paint or Livelong Farm inventory is seeded by this migration.
+
+After applying the migration, publish the updated repository code to both existing Netlify projects using their current storefront/portal build targets. No deployment or DNS changes were performed for this update. Verify the supplied contacts and owner workflows against the real configured project before handover; automated browser checks use fixtures and database checks use local PostgreSQL.
+
+### Unified farm section
+Run supabase/migrations/202610100002_merge_farm_categories.sql after the farm-and-paint migration. It preserves existing listings and their origin fields while moving the old farm-produce category into livelong-farm. The app also groups legacy records into Livelong Farm before this migration is applied. Old /farm-produce links redirect to /livelong-farm. The navigation, category cards, filters, and owner portal now offer one farm category.
+
+
+### Current public contact details
+The owner-confirmed phone, WhatsApp display number, and email are stored in src/config/business.ts. They override the previous environment-based contact setup: 08144669205, 0907 041 9149, and Thisislivelong@gmail.com. WhatsApp links convert the Nigerian local number to 2349070419149 and encode enquiry messages. Existing VITE_BUSINESS contact variables do not override these confirmed values. The editable Livelong Farm profile remains managed separately in the owner portal.
+
