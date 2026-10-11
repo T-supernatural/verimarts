@@ -43,6 +43,8 @@ export interface ListingImage {
   alt: string;
   position: number;
   is_cover: boolean;
+  media_type?: "image" | "video";
+  duration_seconds?: number | null;
   url?: string;
 }
 export interface Listing {

@@ -977,6 +977,12 @@ footer {
   width: 100%;
   object-fit: cover;
 }
+.gallery-main > video {
+  height: 100%;
+  width: 100%;
+  object-fit: contain;
+  background: #111;
+}
 .gallery-main button {
   position: absolute;
   top: 45%;
@@ -1015,7 +1021,8 @@ footer {
 .thumbnails button[aria-pressed="true"] {
   border-color: #b90000;
 }
-.thumbnails img {
+.thumbnails img,
+.thumbnails video {
   width: 100%;
   aspect-ratio: 1.4;
   object-fit: cover;

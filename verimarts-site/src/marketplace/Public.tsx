@@ -25,6 +25,7 @@ import {
 import type { Listing, Article, Category } from "../data/marketplace";
 import { contentRepository } from "../data/contentRepository";
 import { FarmEnquiry } from "./Farm";
+import { MediaDisplay } from "./MediaDisplay";
 const icons = {
   cars: CarFront,
   property: Building2,
@@ -110,7 +111,7 @@ export function ListingCard({ item }: { item: Listing }) {
     <article className="vehicle-card">
       <Link className="card-photo" to={`/listings/${item.slug}`}>
         {cover?.url ? (
-          <img src={cover.url} alt={cover.alt || item.title} loading="lazy" />
+          <MediaDisplay media={cover} alt={cover.alt || item.title} muted />
         ) : (
           <div className="listing-no-image">
             <Icon size={40} />
@@ -156,10 +157,16 @@ function ArticleCard({ item }: { item: Article }) {
     <article className="vehicle-card">
       {item.cover_url && (
         <Link className="card-photo" to={`/journal/${item.slug}`}>
-          <img
-            src={item.cover_url}
+          <MediaDisplay
+            media={{
+              path: item.cover_path!,
+              alt: item.cover_alt,
+              position: 0,
+              is_cover: true,
+              media_type: "image",
+              url: item.cover_url,
+            }}
             alt={item.cover_alt || item.title}
-            loading="lazy"
           />
         </Link>
       )}
@@ -598,17 +605,17 @@ export function MarketplaceBrowse({
 export function ListingGallery({ item }: { item: Listing }) {
   const [index, setIndex] = useState(0);
   if (!item.images.length)
-    return <div className="empty-state">Photos not provided.</div>;
+    return <div className="empty-state">Media not provided.</div>;
   const image = item.images[Math.min(index, item.images.length - 1)];
   return (
     <div className="gallery">
       <div className="gallery-main">
-        <img src={image.url} alt={image.alt || item.title} />
+        <MediaDisplay media={image} alt={image.alt || item.title} controls />
         {item.images.length > 1 && (
           <>
             <button
               className="gallery-prev"
-              aria-label="Previous photo"
+              aria-label="Previous media"
               onClick={() =>
                 setIndex(
                   (i) => (i - 1 + item.images.length) % item.images.length,
@@ -619,7 +626,7 @@ export function ListingGallery({ item }: { item: Listing }) {
             </button>
             <button
               className="gallery-next"
-              aria-label="Next photo"
+              aria-label="Next media"
               onClick={() => setIndex((i) => (i + 1) % item.images.length)}
             >
               <ChevronRight />
@@ -634,11 +641,15 @@ export function ListingGallery({ item }: { item: Listing }) {
         {item.images.map((img, i) => (
           <button
             key={img.path}
-            aria-label={`Show photo ${i + 1}`}
+            aria-label={`Show ${img.media_type === "video" ? "video" : "photo"} ${i + 1}`}
             aria-pressed={index === i}
             onClick={() => setIndex(i)}
           >
-            <img src={img.url} alt="" />
+            <MediaDisplay
+              media={img}
+              alt={img.alt || `Listing media ${i + 1}`}
+              muted
+            />
           </button>
         ))}
       </div>
@@ -792,10 +803,17 @@ export function ArticlePreview({ item }: { item: Article }) {
           {new Date(item.published_at).toLocaleDateString()}
         </p>
       )}
-      {item.cover_url && (
-        <img
+      {item.cover_url && item.cover_path && (
+        <MediaDisplay
           className="journal-cover"
-          src={item.cover_url}
+          media={{
+            path: item.cover_path,
+            alt: item.cover_alt,
+            position: 0,
+            is_cover: true,
+            media_type: "image",
+            url: item.cover_url,
+          }}
           alt={item.cover_alt || item.title}
         />
       )}

@@ -1,6 +1,7 @@
 import { createClient } from "@supabase/supabase-js";
 const url = import.meta.env.VITE_SUPABASE_URL as string | undefined;
 const key = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY as string | undefined;
+export const supabasePublicConfig = { url, key };
 if (key?.startsWith("sb_secret_"))
   throw new Error("A secret Supabase key must never be used in the browser.");
 if (key?.startsWith("eyJ")) {

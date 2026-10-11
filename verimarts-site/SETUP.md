@@ -27,15 +27,15 @@ npm test                # Chromium required: npx playwright install chromium
 
 ## Environment variables
 
-| Name | Value / purpose |
-| --- | --- |
-| `VITE_SUPABASE_URL` | The confirmed Supabase project URL. |
+| Name                            | Value / purpose                                                                                                                                      |
+| ------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `VITE_SUPABASE_URL`             | The confirmed Supabase project URL.                                                                                                                  |
 | `VITE_SUPABASE_PUBLISHABLE_KEY` | Supabase publishable key, or legacy anonymous public key. These are intended for browser use; RLS is mandatory. Never use a secret/service-role key. |
-| `VITE_BUSINESS_WHATSAPP` | Owner-confirmed international WhatsApp number, digits or leading `+`. Empty hides the direct link and directs visitors to setup status. |
-| `VITE_BUSINESS_PHONE` | Owner-confirmed public phone number. |
-| `VITE_BUSINESS_EMAIL` | Owner-confirmed public email. |
-| `VITE_PUBLIC_SITE_URL` | Reserved for the confirmed storefront URL; no domain is assumed by the code. |
-| `BUILD_TARGET` | Netlify build environment only: `storefront` for the public project; `portal` for the owner project. Default is `storefront`. |
+| `VITE_BUSINESS_WHATSAPP`        | Owner-confirmed international WhatsApp number, digits or leading `+`. Empty hides the direct link and directs visitors to setup status.              |
+| `VITE_BUSINESS_PHONE`           | Owner-confirmed public phone number.                                                                                                                 |
+| `VITE_BUSINESS_EMAIL`           | Owner-confirmed public email.                                                                                                                        |
+| `VITE_PUBLIC_SITE_URL`          | Reserved for the confirmed storefront URL; no domain is assumed by the code.                                                                         |
+| `BUILD_TARGET`                  | Netlify build environment only: `storefront` for the public project; `portal` for the owner project. Default is `storefront`.                        |
 
 Keep `.env` and all actual environment files out of Git. The example contains no credentials. Every `VITE_` variable is public and included in the client bundle. The client rejects recognizable Supabase secret/service-role keys. No service-role key is required by this frontend.
 
@@ -129,9 +129,23 @@ Still needed from the client: actual paint names/brand if applicable, descriptio
 After applying the migration, publish the updated repository code to both existing Netlify projects using their current storefront/portal build targets. No deployment or DNS changes were performed for this update. Verify the supplied contacts and owner workflows against the real configured project before handover; automated browser checks use fixtures and database checks use local PostgreSQL.
 
 ### Unified farm section
+
 Run supabase/migrations/202610100002_merge_farm_categories.sql after the farm-and-paint migration. It preserves existing listings and their origin fields while moving the old farm-produce category into livelong-farm. The app also groups legacy records into Livelong Farm before this migration is applied. Old /farm-produce links redirect to /livelong-farm. The navigation, category cards, filters, and owner portal now offer one farm category.
 
-
 ### Current public contact details
+
 The owner-confirmed phone, WhatsApp display number, and email are stored in src/config/business.ts. They override the previous environment-based contact setup: 08144669205, 0907 041 9149, and Thisislivelong@gmail.com. WhatsApp links convert the Nigerian local number to 2349070419149 and encode enquiry messages. Existing VITE_BUSINESS contact variables do not override these confirmed values. The editable Livelong Farm profile remains managed separately in the owner portal.
 
+### Repairing media uploads and enabling listing videos
+
+Apply supabase/migrations/202610110001_repair_media_uploads_and_videos.sql after the marketplace, farm/paint, and farm-category merge migrations. This synchronizes the existing private catalogue-media bucket with the checked-in 5 MiB project/bucket ceiling and adds MP4/WebM MIME types. The portal accepts JPEG/PNG/WebP images and MP4/WebM listing videos, each capped at 5 MiB; videos are capped at 30 seconds. The 5 MiB limit is the current supabase/config.toml global setting and existing bucket setting, so it is the maximum the app advertises; a lower hosted Storage global limit still takes precedence. Short files remain under Supabase's documented 6 MiB threshold where standard uploads are appropriate. Videos are checked in the browser before upload; the database also bounds recorded duration metadata, but it does not transcode or independently inspect video bytes. Journal covers remain images only. The portal shows transfer percentage, local preview, success and provider-specific error messages. Published media uses refreshed one-hour signed URLs, renewing on load error. No public bucket is introduced.
+
+If an upload is denied, first confirm that `private.owner_account.user_id` matches the client's Auth UUID, then inspect the configured bucket in the Supabase SQL Editor:
+
+```sql
+select id, public, file_size_limit, allowed_mime_types
+from storage.buckets
+where id = 'catalogue-media';
+```
+
+Expected values: `public = false`, `file_size_limit = 5242880`, and JPEG/PNG/WebP/MP4/WebM allowed MIME types. The app reports 401 for expired sign-in, 403 for owner or RLS policy denial, 413 for Storage's global or bucket size cap, and 415 for a bucket MIME mismatch. A lower hosted Storage global limit takes precedence over the bucket cap.

@@ -5,26 +5,48 @@ import type { Listing, Article, ListingImage } from "../src/data/marketplace";
 import type { FarmProfile } from "../src/data/farm";
 test("compact navigation and confirmed business contacts", async ({ page }) => {
   await mockBackend(page);
-  await page.addInitScript(() => sessionStorage.setItem("verimarts-intro", "seen"));
+  await page.addInitScript(() =>
+    sessionStorage.setItem("verimarts-intro", "seen"),
+  );
   await page.setViewportSize({ width: 1366, height: 900 });
   await page.goto("/contact");
   const nav = page.getByRole("navigation", { name: "Main navigation" });
-  await expect(page.getByRole("button", { name: "Open navigation" })).toBeHidden();
-  await expect(nav.getByRole("link", { name: "Livelong Farm", exact: true })).toHaveCount(1);
-  await expect(nav.getByRole("link", { name: "Cars", exact: true })).toBeHidden();
+  await expect(
+    page.getByRole("button", { name: "Open navigation" }),
+  ).toBeHidden();
+  await expect(
+    nav.getByRole("link", { name: "Livelong Farm", exact: true }),
+  ).toHaveCount(1);
+  await expect(
+    nav.getByRole("link", { name: "Cars", exact: true }),
+  ).toBeHidden();
   await nav.locator("summary").click();
-  await expect(nav.getByRole("link", { name: "Cars", exact: true })).toBeVisible();
+  await expect(
+    nav.getByRole("link", { name: "Cars", exact: true }),
+  ).toBeVisible();
   await page.keyboard.press("Escape");
-  await expect(nav.getByRole("link", { name: "Cars", exact: true })).toBeHidden();
-  await expect(page.locator("main").getByRole("link", { name: "08144669205", exact: true })).toBeVisible();
-  await expect(page.locator('main a[href="mailto:Thisislivelong@gmail.com"]')).toBeVisible();
-  await expect(page.locator('main a[href^="https://wa.me/2349070419149"]')).toHaveCount(2);
+  await expect(
+    nav.getByRole("link", { name: "Cars", exact: true }),
+  ).toBeHidden();
+  await expect(
+    page
+      .locator("main")
+      .getByRole("link", { name: "08144669205", exact: true }),
+  ).toBeVisible();
+  await expect(
+    page.locator('main a[href="mailto:Thisislivelong@gmail.com"]'),
+  ).toBeVisible();
+  await expect(
+    page.locator('main a[href^="https://wa.me/2349070419149"]'),
+  ).toHaveCount(2);
   await page.setViewportSize({ width: 390, height: 844 });
   await page.getByRole("button", { name: "Open navigation" }).click();
   await nav.locator("summary").click();
   await nav.getByRole("link", { name: "Cars", exact: true }).click();
   await expect(page).toHaveURL(/\/cars$/);
-  await expect(page.getByRole("button", { name: "Open navigation" })).toBeVisible();
+  await expect(
+    page.getByRole("button", { name: "Open navigation" }),
+  ).toBeVisible();
 });
 const farmFixture: FarmProfile = {
   id: "livelong-farm",
@@ -398,7 +420,9 @@ test("Livelong Farm shows supplied offerings, contacts and encoded item enquirie
     page.getByRole("link", { name: "09070419149", exact: true }),
   ).toHaveAttribute("href", /^https:\/\/wa.me\/2349070419149\?text=/);
   await expect(
-    page.locator("main").getByRole("link", { name: "08144669205", exact: true }),
+    page
+      .locator("main")
+      .getByRole("link", { name: "08144669205", exact: true }),
   ).toHaveAttribute("href", "tel:08144669205");
   await expect(
     page.getByRole("link", { name: "thisislivelong@gmail.com", exact: true }),
@@ -416,20 +440,40 @@ test("Livelong Farm shows supplied offerings, contacts and encoded item enquirie
   expect(url.searchParams.get("text")).toContain("Palm oil & jars");
 });
 
-test("farm leads with products and grouped footer fits desktop and mobile", async ({ page }) => {
+test("farm leads with products and grouped footer fits desktop and mobile", async ({
+  page,
+}) => {
   await mockBackend(page);
-  await page.addInitScript(() => sessionStorage.setItem("verimarts-intro", "seen"));
+  await page.addInitScript(() =>
+    sessionStorage.setItem("verimarts-intro", "seen"),
+  );
   for (const width of [1366, 390]) {
     await page.setViewportSize({ width, height: 900 });
     await page.goto("/livelong-farm");
     await expect(page.locator(".farm-hero .vehicle-card")).toHaveCount(1);
     await expect(page.locator(".farm-hero")).toContainText("Test produce");
-    await expect(page.locator(".farm-hero")).toContainText("owned and run by Livelong Farm");
-    expect(await page.locator("#farm-products").evaluate((el) => Boolean(el.compareDocumentPosition(document.querySelector(".farm-contact-section")!) & Node.DOCUMENT_POSITION_FOLLOWING))).toBe(true);
+    await expect(page.locator(".farm-hero")).toContainText(
+      "owned and run by Livelong Farm",
+    );
+    expect(
+      await page
+        .locator("#farm-products")
+        .evaluate((el) =>
+          Boolean(
+            el.compareDocumentPosition(
+              document.querySelector(".farm-contact-section")!,
+            ) & Node.DOCUMENT_POSITION_FOLLOWING,
+          ),
+        ),
+    ).toBe(true);
     await page.locator("footer").scrollIntoViewIfNeeded();
     await expect(page.locator("footer")).toContainText("THE MARKETPLACE");
     await expect(page.locator("footer")).toContainText("DISCOVER VERIMARTS");
-    expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true);
+    expect(
+      await page.evaluate(
+        () => document.documentElement.scrollWidth <= window.innerWidth,
+      ),
+    ).toBe(true);
     await page.getByRole("button", { name: "Back to top" }).click();
     await expect.poll(() => page.evaluate(() => window.scrollY)).toBe(0);
   }
@@ -582,6 +626,76 @@ test("owner can upload, reorder, preview, publish, unpublish and delete a listin
   await expect(
     page.getByRole("heading", { name: "Sign in to Verimarts." }),
   ).toBeVisible();
+});
+
+test("owner can upload short Livelong Farm video media with preview and progress", async ({
+  page,
+}) => {
+  const { uploads, state } = await mockBackend(page);
+  await page.addInitScript(() => {
+    HTMLMediaElement.prototype.load = function () {};
+    const descriptor = Object.getOwnPropertyDescriptor(
+      HTMLMediaElement.prototype,
+      "src",
+    )!;
+    Object.defineProperty(HTMLMediaElement.prototype, "src", {
+      configurable: true,
+      get() {
+        return descriptor.get?.call(this);
+      },
+      set(value: string) {
+        descriptor.set?.call(this, value);
+        queueMicrotask(() => this.dispatchEvent(new Event("loadedmetadata")));
+      },
+    });
+    Object.defineProperty(HTMLMediaElement.prototype, "duration", {
+      configurable: true,
+      get: () => 4,
+    });
+  });
+  await login(page);
+  await page.getByRole("button", { name: "Create listing" }).click();
+  await page.getByLabel("Title", { exact: true }).fill("Farm video listing");
+  await page.getByRole("button", { name: "Generate from title" }).click();
+  await page
+    .getByLabel("Description", { exact: true })
+    .fill("Owner provided farm video.");
+  await page.getByLabel("Unit or pack size").fill("Confirmed unit");
+  await page.getByLabel("Upload images or video").setInputFiles({
+    name: "farm.webm",
+    mimeType: "video/webm",
+    buffer: Buffer.from([1, 2, 3, 4]),
+  });
+  await expect(page.locator(".image-edit-card video")).toBeVisible();
+  await expect(
+    page.getByText(/uploaded\. Save the content to keep it\./),
+  ).toBeVisible();
+  expect(uploads.some((path) => path.endsWith(".webm"))).toBe(true);
+  await page.getByRole("button", { name: "Save and publish" }).click();
+  await expect(
+    page.locator(".owner-record").filter({ hasText: "Farm video listing" }),
+  ).toBeVisible();
+  expect(uploads.some((path) => path.endsWith(".webm"))).toBe(true);
+  expect(state.listings.find((item) => item.title === "Farm video listing")?.images[0]?.duration_seconds).toBe(4);
+});
+
+test("media uploads reject oversized files before contacting Storage", async ({
+  page,
+}) => {
+  const { uploads } = await mockBackend(page);
+  await login(page);
+  await page.getByRole("button", { name: "Create listing" }).click();
+  await page.getByLabel("Upload images or video").setInputFiles({
+    name: "too-large.png",
+    mimeType: "image/png",
+    buffer: Buffer.alloc(5 * 1024 * 1024 + 1),
+  });
+  await expect(page.getByRole("alert")).toContainText("5 MiB or smaller");
+  expect(uploads).toHaveLength(0);
+  await page.route("**/storage/v1/object/catalogue-media/listings/**", (route) => route.fulfill({ status: 403, contentType: "application/json", body: JSON.stringify({ message: "row-level security policy denied" }) }));
+  await page.getByLabel("Upload images or video").setInputFiles({ name: "denied.png", mimeType: "image/png", buffer: png });
+  await expect(page.getByRole("alert")).toContainText("Storage owner policies");
+  expect(uploads).toHaveLength(0);
 });
 test("owner Journal supports drafts, preview and publication; no sign-up", async ({
   page,

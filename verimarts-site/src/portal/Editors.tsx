@@ -10,9 +10,12 @@ import type {
 import {
   contentRepository,
   removeMedia,
-  uploadImage,
+  uploadMedia,
+  MAX_MEDIA_BYTES,
+  MAX_VIDEO_SECONDS,
 } from "../data/contentRepository";
 import { ListingPreview, ArticlePreview } from "../marketplace/Public";
+import { MediaDisplay } from "../marketplace/MediaDisplay";
 
 export function PreviewDialog({
   children,
@@ -62,6 +65,8 @@ export function MediaEditor({
 }) {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
+  const [progress, setProgress] = useState("");
+  const [success, setSuccess] = useState("");
   const objectUrls = useRef<string[]>([]);
   useEffect(
     () => () => {
@@ -72,16 +77,26 @@ export function MediaEditor({
   async function upload(files: FileList | null) {
     if (!files) return;
     if (images.length + files.length > max) {
-      setError(`Maximum ${max} images.`);
+      setError(`Maximum ${max} media files.`);
       return;
     }
     setBusy(true);
     onBusy(true);
     setError("");
+    setSuccess("");
     const next = [...images];
     try {
-      for (const file of Array.from(files)) {
-        const image = await uploadImage(file, kind, id);
+      const selected = Array.from(files);
+      for (const [index, file] of selected.entries()) {
+        const isVideo = file.type.startsWith("video/");
+        setProgress(
+          `${isVideo ? "Checking video duration" : "Preparing image"}: ${file.name} (${index + 1} of ${selected.length})`,
+        );
+        const image = await uploadMedia(file, kind, id, ({ percent }) =>
+          setProgress(
+            `Uploading ${file.name} (${index + 1} of ${selected.length}) · ${percent}%`,
+          ),
+        );
         const url = URL.createObjectURL(file);
         objectUrls.current.push(url);
         next.push({
@@ -91,11 +106,16 @@ export function MediaEditor({
           position: next.length,
         });
         onChange([...next]);
+        setProgress("");
+        setSuccess(
+          `${selected.length === 1 ? file.name : `${index + 1} of ${selected.length} files`} uploaded. Save the content to keep it.`,
+        );
       }
     } catch (e) {
       setError(e instanceof Error ? e.message : "Upload failed.");
     } finally {
       setBusy(false);
+      setProgress("");
       onBusy(false);
     }
   }
@@ -106,16 +126,23 @@ export function MediaEditor({
   }
   return (
     <fieldset className="media-editor" disabled={busy || disabled}>
-      <legend>{max === 1 ? "Cover image" : "Listing images"}</legend>
+      <legend>{max === 1 ? "Cover image" : "Listing media"}</legend>
       <p className="small muted">
-        JPEG, PNG or WebP · Up to 5 MB each · {max} image{max === 1 ? "" : "s"}{" "}
-        maximum. Uploads stay private until the content is published.
+        {kind === "articles"
+          ? "JPEG, PNG or WebP image"
+          : `Images (JPEG, PNG, WebP) and short videos (MP4, WebM) · Up to ${Math.round(MAX_MEDIA_BYTES / 1024 / 1024)} MiB each · Videos up to ${MAX_VIDEO_SECONDS} seconds`}{" "}
+        · {max} file{max === 1 ? "" : "s"} maximum. Uploads stay private until
+        published.
       </p>
       <label>
-        Upload {max === 1 ? "cover" : "images"}
+        Upload {kind === "articles" ? "cover image" : "images or video"}
         <input
           type="file"
-          accept="image/jpeg,image/png,image/webp"
+          accept={
+            kind === "articles"
+              ? "image/jpeg,image/png,image/webp"
+              : "image/jpeg,image/png,image/webp,video/mp4,video/webm"
+          }
           multiple={max > 1}
           onChange={(e) => {
             void upload(e.target.files);
@@ -123,14 +150,41 @@ export function MediaEditor({
           }}
         />
       </label>
-      {busy && <p role="status">Uploading images…</p>}
+      {progress && (
+        <>
+          <p role="status" aria-live="polite">
+            {progress}
+          </p>
+          <progress
+            className="media-upload-progress"
+            max={100}
+            value={Number(progress.match(/(\d+)%$/)?.[1] || 0)}
+            aria-label="Media upload progress"
+          />
+        </>
+      )}
+      {success && !busy && <p role="status">{success}</p>}
       {error && <p role="alert">{error}</p>}
       <div className="image-edit-grid">
         {images.map((image, index) => (
           <div className="image-edit-card" key={image.path}>
-            <img src={image.url} alt={image.alt || "Uploaded image preview"} />
+            <MediaDisplay
+              media={image}
+              alt={
+                image.alt ||
+                (image.media_type === "video"
+                  ? "Uploaded video preview"
+                  : "Uploaded image preview")
+              }
+              controls
+            />
+            {image.media_type === "video" && (
+              <span className="media-duration">
+                Video · {image.duration_seconds}s
+              </span>
+            )}
             <label>
-              Image description
+              Media description
               <input
                 maxLength={500}
                 value={image.alt}
@@ -159,7 +213,7 @@ export function MediaEditor({
               <button
                 type="button"
                 className="button secondary"
-                aria-label={`Move image ${index + 1} earlier`}
+                aria-label={`Move ${image.media_type === "video" ? "video" : "image"} ${index + 1} earlier`}
                 disabled={index === 0}
                 onClick={() => move(index, -1)}
               >
@@ -168,7 +222,7 @@ export function MediaEditor({
               <button
                 type="button"
                 className="button secondary"
-                aria-label={`Move image ${index + 1} later`}
+                aria-label={`Move ${image.media_type === "video" ? "video" : "image"} ${index + 1} later`}
                 disabled={index === images.length - 1}
                 onClick={() => move(index, 1)}
               >
@@ -184,7 +238,7 @@ export function MediaEditor({
                   onChange(next);
                 }}
               >
-                Remove image
+                Remove media
               </button>
             </div>
           </div>

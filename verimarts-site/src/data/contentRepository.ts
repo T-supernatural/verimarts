@@ -1,4 +1,8 @@
-import { requireBackend, supabase } from "../lib/supabase";
+import {
+  requireBackend,
+  supabase,
+  supabasePublicConfig,
+} from "../lib/supabase";
 import type { Listing, Article, ListingImage } from "./marketplace";
 import handoverMedia from "./handoverMedia.json";
 import type { FarmProfile } from "./farm";
@@ -11,9 +15,20 @@ async function imageUrl(path: string) {
   if (illustration) return illustration;
   const { data, error } = await requireBackend()
     .storage.from(bucket)
-    .createSignedUrl(path, 60);
+    .createSignedUrl(path, 3600);
   check(error);
   return data?.signedUrl;
+}
+export async function refreshMediaUrl(path: string) {
+  const illustration = (handoverMedia as Record<string, string>)[path];
+  if (illustration) return illustration;
+  const { data, error } = await requireBackend()
+    .storage.from(bucket)
+    .createSignedUrl(path, 3600);
+  check(error);
+  if (!data?.signedUrl)
+    throw new Error("Supabase did not return a media link.");
+  return data.signedUrl;
 }
 export async function withListingImages(items: Listing[]) {
   return Promise.all(
@@ -169,6 +184,8 @@ export const contentRepository = {
       alt: img.alt,
       position: i,
       is_cover: img.is_cover,
+      media_type: img.media_type || "image",
+      duration_seconds: img.duration_seconds ?? null,
     }));
     const result = await requireBackend().rpc("save_listing_with_images", {
       listing_data: row,
@@ -216,34 +233,151 @@ export const contentRepository = {
     check(error);
   },
 };
-export async function uploadImage(
+export const MAX_MEDIA_BYTES = 5 * 1024 * 1024;
+export const MAX_VIDEO_SECONDS = 30;
+export const MEDIA_TYPES = {
+  "image/jpeg": { extension: "jpg", kind: "image" },
+  "image/png": { extension: "png", kind: "image" },
+  "image/webp": { extension: "webp", kind: "image" },
+  "video/mp4": { extension: "mp4", kind: "video" },
+  "video/webm": { extension: "webm", kind: "video" },
+} as const;
+export type UploadProgress = { loaded: number; total: number; percent: number };
+function inspectVideo(file: File) {
+  return new Promise<number>((resolve, reject) => {
+    const video = document.createElement("video");
+    const localUrl = URL.createObjectURL(file);
+    const cleanup = () => {
+      URL.revokeObjectURL(localUrl);
+      video.removeAttribute("src");
+      video.load();
+    };
+    video.preload = "metadata";
+    video.onloadedmetadata = () => {
+      const duration = video.duration;
+      cleanup();
+      if (!Number.isFinite(duration) || duration <= 0) {
+        reject(
+          new Error(
+            "Could not read the video duration. Try an MP4 or WebM video.",
+          ),
+        );
+      } else if (duration > MAX_VIDEO_SECONDS) {
+        reject(
+          new Error(
+            `Videos must be ${MAX_VIDEO_SECONDS} seconds or shorter. This video is ${Math.ceil(duration)} seconds.`,
+          ),
+        );
+      } else {
+        resolve(Math.ceil(duration));
+      }
+    };
+    video.onerror = () => {
+      cleanup();
+      reject(
+        new Error(
+          "This video could not be previewed. Use an MP4 or WebM file.",
+        ),
+      );
+    };
+    video.src = localUrl;
+  });
+}
+export async function uploadMedia(
   file: File,
   kind: "listings" | "articles",
   id: string,
+  onProgress?: (progress: UploadProgress) => void,
 ): Promise<ListingImage> {
-  if (
-    !["image/jpeg", "image/png", "image/webp"].includes(file.type) ||
-    file.size > 5 * 1024 * 1024
-  )
-    throw new Error("Upload JPEG, PNG or WebP images up to 5 MB each.");
-  const extension = {
-    "image/jpeg": "jpg",
-    "image/png": "png",
-    "image/webp": "webp",
-  }[file.type];
-  const path = `${kind}/${id}/${crypto.randomUUID()}.${extension}`;
-  const { error } = await requireBackend()
-    .storage.from(bucket)
-    .upload(path, file, { upsert: false, contentType: file.type });
-  check(error);
+  const type = MEDIA_TYPES[file.type as keyof typeof MEDIA_TYPES];
+  if (!type)
+    throw new Error("Choose a JPEG, PNG or WebP image, or an MP4/WebM video.");
+  if (file.size > MAX_MEDIA_BYTES)
+    throw new Error(
+      "Each file must be 5 MiB or smaller, matching the Supabase Storage limit.",
+    );
+  if (file.size === 0)
+    throw new Error("This file is empty. Choose another file.");
+  if (kind === "articles" && type.kind === "video")
+    throw new Error("Journal covers must be images.");
+  const duration = type.kind === "video" ? await inspectVideo(file) : null;
+  const client = requireBackend();
+  const { data: sessionData, error: sessionError } =
+    await client.auth.getSession();
+  check(sessionError);
+  const accessToken = sessionData.session?.access_token;
+  if (!accessToken)
+    throw new Error(
+      "Your portal session has expired. Sign in again and retry the upload.",
+    );
+  const path = `${kind}/${id}/${crypto.randomUUID()}.${type.extension}`;
+  const storageBase = supabasePublicConfig.url?.replace(/\/$/, "");
+  const apiKey = supabasePublicConfig.key;
+  if (!storageBase || !apiKey)
+    throw new Error("Supabase public URL and publishable key are required.");
+  const url = `${storageBase}/storage/v1/object/${bucket}/${path.split("/").map(encodeURIComponent).join("/")}`;
+  await new Promise<void>((resolve, reject) => {
+    const request = new XMLHttpRequest();
+    request.open("POST", url);
+    request.setRequestHeader("Authorization", `Bearer ${accessToken}`);
+    request.setRequestHeader("apikey", apiKey);
+    request.setRequestHeader("Content-Type", file.type);
+    request.setRequestHeader("cache-control", "max-age=3600");
+    request.setRequestHeader("x-upsert", "false");
+    request.upload.onprogress = (event) => {
+      if (event.lengthComputable)
+        onProgress?.({
+          loaded: event.loaded,
+          total: event.total,
+          percent: Math.round((event.loaded / event.total) * 100),
+        });
+    };
+    request.onerror = () =>
+      reject(
+        new Error(
+          "Upload could not reach Supabase Storage. Check the connection and try again.",
+        ),
+      );
+    request.onabort = () => reject(new Error("Upload was cancelled."));
+    request.onload = () => {
+      if (request.status >= 200 && request.status < 300) {
+        onProgress?.({ loaded: file.size, total: file.size, percent: 100 });
+        resolve();
+        return;
+      }
+      let providerDetail: string;
+      try {
+        const payload = JSON.parse(request.responseText);
+        providerDetail = payload.message || payload.error || "";
+      } catch {
+        providerDetail = request.responseText;
+      }
+      const statusMessage: Record<number, string> = {
+        401: "Your portal session has expired. Sign in again and retry.",
+        403: `Supabase denied this upload. Check that this account is the configured owner and the Storage owner policies are applied. ${providerDetail}`.trim(),
+        413: "This file exceeds the current Supabase project or bucket upload limit.",
+        415: "Supabase rejected this file type. Check catalogue-media allowed MIME types.",
+      };
+      const detail = statusMessage[request.status] || providerDetail;
+      reject(
+        new Error(
+          `Upload failed (${request.status}). ${detail || "Check the Storage bucket settings and owner policy, then retry."}`,
+        ),
+      );
+    };
+    request.send(file);
+  });
   return {
     path,
     alt: "",
     position: 0,
     is_cover: false,
+    media_type: type.kind,
+    duration_seconds: duration,
     url: await imageUrl(path),
   };
 }
+export const uploadImage = uploadMedia;
 export async function removeMedia(paths: string[]) {
   paths = paths.filter(
     (path) => !(handoverMedia as Record<string, string>)[path],

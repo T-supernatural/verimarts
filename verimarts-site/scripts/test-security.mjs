@@ -339,6 +339,36 @@ try {
     0,
     "merged draft remains private",
   );
+  await db.exec("reset role");
+  await db.exec(
+    await readFile(
+      "supabase/migrations/202610110001_repair_media_uploads_and_videos.sql",
+      "utf8",
+    ),
+  );
+  await equal(
+    "select file_size_limit as value from storage.buckets where id='catalogue-media'",
+    5242880,
+    "media bucket enforces configured 5 MiB cap",
+  );
+  await equal(
+    "select 'video/webm'=any(allowed_mime_types) as value from storage.buckets where id='catalogue-media'",
+    true,
+    "media bucket allows WebM uploads",
+  );
+  await role("authenticated", owner);
+  await db.exec(
+    `insert into storage.objects(bucket_id,name) values('catalogue-media','listings/${published}/99999999-9999-4999-8999-999999999999.webm'); insert into public.listing_images(listing_id,path,position,is_cover,media_type,duration_seconds) values('${published}','listings/${published}/99999999-9999-4999-8999-999999999999.webm',1,false,'video',30)`,
+  );
+  await denied(
+    `insert into public.listing_images(listing_id,path,position,is_cover,media_type,duration_seconds) values('${published}','listings/${published}/aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa.mp4',2,false,'video',31)`,
+    "database rejects videos over 30 seconds",
+  );
+  await role("authenticated", outsider);
+  await denied(
+    `insert into storage.objects(bucket_id,name) values('catalogue-media','listings/${published}/bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb.mp4')`,
+    "non-owner cannot upload video media",
+  );
   console.log(
     `${assertions} PostgreSQL RLS, authorization, validation and Storage-policy assertions passed.`,
   );

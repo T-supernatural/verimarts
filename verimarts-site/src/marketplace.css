@@ -476,6 +476,27 @@
   object-fit: cover;
   margin-bottom: 18px;
 }
+.image-edit-card > img,
+.image-edit-card > video {
+  width: 100%;
+  aspect-ratio: 16 / 10;
+  object-fit: cover;
+  background: #111;
+}
+.media-duration {
+  display: inline-block;
+  padding: 6px 10px;
+  margin: 6px 0;
+  color: #333;
+  background: #eee;
+  font-size: 12px;
+}
+.media-upload-progress {
+  width: min(100%, 380px);
+  height: 8px;
+  margin: 8px 0;
+  accent-color: #ff0000;
+}
 .image-edit-card .button {
   font-size: 11px;
   padding: 8px 10px;
