@@ -11,7 +11,6 @@ import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
 import {
   ArrowRight,
   ArrowUpRight,
-  ChevronDown,
   Menu,
   X,
   Play,
@@ -31,20 +30,17 @@ import { LivelongFarm } from "./marketplace/Farm";
 import { business, whatsappUrl } from "./config/business";
 const links = [
   ["/", "Home"],
-  ["/livelong-farm", "Livelong Farm"],
-  ["/paint-production", "Paint Production"],
-  ["/shop", "Shop All"],
-  ["/cars", "Cars"],
-  ["/property", "Property"],
-  ["/electronics", "Electronics"],
-  ["/other-goods", "Other Goods"],
+  ["/shop", "Collection"],
   ["/journal", "Journal"],
   ["/about", "About"],
   ["/contact", "Contact"],
 ];
 function sessionSeen() {
   try {
-    return sessionStorage.getItem("verimarts-intro") === "seen";
+    return (
+      sessionStorage.getItem("fashyn-intro") === "seen" ||
+      sessionStorage.getItem("verimarts-intro") === "seen"
+    );
   } catch {
     return false;
   }
@@ -73,31 +69,23 @@ function Intro({ close }: { close: () => void }) {
       className="intro"
       role="dialog"
       aria-modal="true"
-      aria-label="Verimarts logo introduction"
+      aria-label="FASHYN logo introduction"
       exit={{ opacity: 0 }}
       transition={{ duration: reduced ? 0 : 0.25 }}
     >
       <div className="intro-stage">
-        <div className="intro-horizon" aria-hidden="true" />
-        <div className="intro-road" aria-hidden="true">
-          <span />
-        </div>
-        <div className="intro-streak" aria-hidden="true" />
-        <div className="intro-identity">
-          <div className="intro-artwork">
-            <img
-              src="/assets/logo.png"
-              width="1774"
-              height="887"
-              alt="Verimarts"
-              onError={close}
-            />
-          </div>
-          <p className="intro-caption">DRIVEN BY CHOICE.</p>
-          <div className="intro-progress" aria-hidden="true">
-            <span />
-          </div>
-        </div>
+        <video
+          className="intro-video"
+          autoPlay
+          muted
+          playsInline
+          poster="/assets/fashyn-wordmark.png"
+          onEnded={close}
+          onError={close}
+          aria-label="FASHYN logo reveal"
+        >
+          <source src="/assets/fashyn-intro.mp4" type="video/mp4" />
+        </video>
       </div>
       <button ref={skip} className="button secondary" onClick={close}>
         Skip intro <ArrowRight size={16} />
@@ -108,31 +96,14 @@ function Intro({ close }: { close: () => void }) {
 export default function App() {
   const [intro, setIntro] = useState(!sessionSeen());
   const [menu, setMenu] = useState(false);
-  const shopMenu = useRef<HTMLDetailsElement>(null);
   const [headerHidden, setHeaderHidden] = useState(false);
   const location = useLocation();
   const closeNavigation = () => {
     setMenu(false);
-    if (shopMenu.current) shopMenu.current.open = false;
     window.scrollTo({ top: 0, behavior: "instant" });
   };
   useEffect(() => {
-    const outside = (event: PointerEvent) => {
-      if (shopMenu.current && !shopMenu.current.contains(event.target as Node))
-        shopMenu.current.open = false;
-    };
-    const escape = (event: KeyboardEvent) => {
-      if (event.key === "Escape" && shopMenu.current?.open) {
-        shopMenu.current.open = false;
-        shopMenu.current.querySelector("summary")?.focus();
-      }
-    };
-    document.addEventListener("pointerdown", outside);
-    document.addEventListener("keydown", escape);
-    return () => {
-      document.removeEventListener("pointerdown", outside);
-      document.removeEventListener("keydown", escape);
-    };
+    return undefined;
   }, []);
   useEffect(() => {
     let previous = Math.max(0, window.scrollY);
@@ -147,6 +118,7 @@ export default function App() {
   }, []);
   const close = useCallback(() => {
     try {
+      sessionStorage.setItem("fashyn-intro", "seen");
       sessionStorage.setItem("verimarts-intro", "seen");
     } catch {
       /* Storage may be unavailable. */
@@ -156,21 +128,21 @@ export default function App() {
   useEffect(() => {
     window.scrollTo(0, 0);
     const titles: Record<string, string> = {
-      "/": "One marketplace. Many possibilities.",
-      "/shop": "Shop All",
+      "/": "Modern style, thoughtfully chosen.",
+      "/shop": "The Collection",
       "/journal": journalName,
       ...Object.fromEntries(categories.map((c) => [`/${c.id}`, c.name])),
       "/showroom": "Explore the showroom",
-      "/about": "About Verimarts",
-      "/services": "Our services",
-      "/contact": "Contact Verimarts",
+      "/about": "About FASHYN",
+      "/services": "The FASHYN approach",
+      "/contact": "Contact FASHYN",
       "/photo-credits": "Photo credits",
     };
-    document.title = `${titles[location.pathname] ?? "Vehicle details"} | Verimarts`;
+    document.title = `${titles[location.pathname] ?? "Discover the collection"} | FASHYN`;
     const description = document.querySelector('meta[name="description"]');
     description?.setAttribute(
       "content",
-      `${titles[location.pathname] ?? "Explore published content"} at Verimarts. Discover listings and published writing, and enquire directly.`,
+      `${titles[location.pathname] ?? "Discover considered fashion"} at FASHYN. Explore a refined collection shaped by quality, confidence, and modern style.`,
     );
   }, [location.pathname]);
   return (
@@ -187,10 +159,10 @@ export default function App() {
           <Link
             to="/"
             className="brand"
-            aria-label="Verimarts home"
+            aria-label="FASHYN home"
             onClick={() => window.scrollTo({ top: 0, behavior: "instant" })}
           >
-            <img src="/assets/logo.png" alt="Verimarts" />
+            <img src="/assets/fashyn-wordmark.png" alt="FASHYN" />
           </Link>
           <nav
             className={menu ? "nav open" : "nav"}
@@ -199,46 +171,7 @@ export default function App() {
             <NavLink to="/" end onClick={closeNavigation}>
               Home
             </NavLink>
-            <details className="shop-navigation" ref={shopMenu}>
-              <summary
-                className={
-                  categories.some(
-                    (c) =>
-                      c.id !== "livelong-farm" &&
-                      location.pathname.startsWith(`/${c.id}`),
-                  ) || location.pathname === "/shop"
-                    ? "active"
-                    : ""
-                }
-              >
-                Shop <ChevronDown size={15} />
-              </summary>
-              <div className="shop-navigation-panel">
-                <span className="shop-navigation-label">Explore Verimarts</span>
-                <NavLink to="/shop" onClick={closeNavigation}>
-                  All listings <ArrowUpRight size={16} />
-                </NavLink>
-                {categories
-                  .filter((category) => category.id !== "livelong-farm")
-                  .map((category) => (
-                    <NavLink
-                      key={category.id}
-                      to={`/${category.id}`}
-                      onClick={closeNavigation}
-                    >
-                      {category.name}
-                      <ArrowUpRight size={15} />
-                    </NavLink>
-                  ))}
-              </div>
-            </details>
-            {links
-              .filter(([to]) =>
-                ["/livelong-farm", "/journal", "/about", "/contact"].includes(
-                  to,
-                ),
-              )
-              .map(([to, label]) => (
+            {links.slice(1).map(([to, label]) => (
                 <NavLink
                   end={to === "/"}
                   key={to}
@@ -254,7 +187,7 @@ export default function App() {
             className="header-cta"
             onClick={() => window.scrollTo({ top: 0, behavior: "instant" })}
           >
-            Explore listings <ArrowUpRight size={17} />
+            Explore collection <ArrowUpRight size={17} />
           </Link>
           <button
             className="menu-toggle"
@@ -309,43 +242,42 @@ export default function App() {
             <div>
               <span className="eyebrow">FIND YOUR NEXT POSSIBILITY</span>
               <h2>Take a closer look.</h2>
-              <p>Explore the catalogue. Talk directly with Verimarts.</p>
+              <p>Explore the collection. Find your FASHYN.</p>
             </div>
             <Link className="button" to="/shop">
-              Explore listings <ArrowUpRight size={20} />
+              Explore collection <ArrowUpRight size={20} />
             </Link>
           </div>
           <div className="footer-top">
             <div>
               <img
                 className="footer-logo"
-                src="/assets/logo.png"
-                alt="Verimarts"
+                src="/assets/fashyn-wordmark.png"
+                alt="FASHYN"
               />
               <p>
-                Your next possibility starts
+                Your signature starts
                 <br />
-                with a closer look.
+                with FASHYN.
               </p>
             </div>
             <div>
-              <span className="eyebrow">THE MARKETPLACE</span>
-              {categories.map((category) => (
-                <Link key={category.id} to={`/${category.id}`}>
-                  {category.name}
-                </Link>
-              ))}
+              <span className="eyebrow">THE COLLECTION</span>
+              <Link to="/shop">Shop the collection</Link>
+              <Link to="/shop">New arrivals</Link>
+              <Link to="/shop">Featured pieces</Link>
+              <Link to="/shop">Women · Men · Children</Link>
             </div>
             <div>
-              <span className="eyebrow">DISCOVER VERIMARTS</span>
+              <span className="eyebrow">DISCOVER FASHYN</span>
               <Link to="/about">Our story</Link>
               <Link to="/journal">{journalName}</Link>
               <Link to="/contact">
-                Contact Verimarts <ArrowUpRight size={15} />
+                Contact FASHYN <ArrowUpRight size={15} />
               </Link>
-              <Link className="footer-farm-note" to="/livelong-farm">
+              <Link className="footer-farm-note" to="/journal">
                 <span>
-                  Livelong Farm<strong>A Verimarts subsidiary</strong>
+                  FASHYN Journal<strong>Stories in style</strong>
                 </span>
                 <ArrowUpRight size={18} />
               </Link>
@@ -373,9 +305,9 @@ export default function App() {
           </div>
           <div className="footer-bottom">
             <span>
-              © {new Date().getFullYear()} Verimarts. All rights reserved.
+              © {new Date().getFullYear()} FASHYN. All rights reserved.
             </span>
-            <span>One owner · Direct enquiries</span>
+            <span>Considered fashion · Personal service</span>
             <Link to="/photo-credits">Photo credits</Link>
             <button onClick={() => setIntro(true)}>
               <Play size={13} />

@@ -3,7 +3,7 @@ import type { Page } from "@playwright/test";
 import { Buffer } from "node:buffer";
 import type { Listing, Article, ListingImage } from "../src/data/marketplace";
 import type { FarmProfile } from "../src/data/farm";
-test("compact navigation and confirmed business contacts", async ({ page }) => {
+test("FASHYN navigation and confirmed business contacts", async ({ page }) => {
   await mockBackend(page);
   await page.addInitScript(() =>
     sessionStorage.setItem("verimarts-intro", "seen"),
@@ -14,20 +14,8 @@ test("compact navigation and confirmed business contacts", async ({ page }) => {
   await expect(
     page.getByRole("button", { name: "Open navigation" }),
   ).toBeHidden();
-  await expect(
-    nav.getByRole("link", { name: "Livelong Farm", exact: true }),
-  ).toHaveCount(1);
-  await expect(
-    nav.getByRole("link", { name: "Cars", exact: true }),
-  ).toBeHidden();
-  await nav.locator("summary").click();
-  await expect(
-    nav.getByRole("link", { name: "Cars", exact: true }),
-  ).toBeVisible();
-  await page.keyboard.press("Escape");
-  await expect(
-    nav.getByRole("link", { name: "Cars", exact: true }),
-  ).toBeHidden();
+  await expect(nav.getByRole("link", { name: "Collection", exact: true })).toHaveCount(1);
+  await expect(nav.getByRole("link", { name: "Cars", exact: true })).toHaveCount(0);
   await expect(
     page
       .locator("main")
@@ -41,9 +29,8 @@ test("compact navigation and confirmed business contacts", async ({ page }) => {
   ).toHaveCount(2);
   await page.setViewportSize({ width: 390, height: 844 });
   await page.getByRole("button", { name: "Open navigation" }).click();
-  await nav.locator("summary").click();
-  await nav.getByRole("link", { name: "Cars", exact: true }).click();
-  await expect(page).toHaveURL(/\/cars$/);
+  await nav.getByRole("link", { name: "Collection", exact: true }).click();
+  await expect(page).toHaveURL(/\/shop$/);
   await expect(
     page.getByRole("button", { name: "Open navigation" }),
   ).toBeVisible();
@@ -453,7 +440,7 @@ test("farm leads with products and grouped footer fits desktop and mobile", asyn
     await expect(page.locator(".farm-hero .vehicle-card")).toHaveCount(1);
     await expect(page.locator(".farm-hero")).toContainText("Test produce");
     await expect(page.locator(".farm-hero")).toContainText(
-      "owned and run by Livelong Farm",
+      "wider story behind the FASHYN collection",
     );
     expect(
       await page
@@ -467,8 +454,8 @@ test("farm leads with products and grouped footer fits desktop and mobile", asyn
         ),
     ).toBe(true);
     await page.locator("footer").scrollIntoViewIfNeeded();
-    await expect(page.locator("footer")).toContainText("THE MARKETPLACE");
-    await expect(page.locator("footer")).toContainText("DISCOVER VERIMARTS");
+    await expect(page.locator("footer")).toContainText("THE COLLECTION");
+    await expect(page.locator("footer")).toContainText("DISCOVER FASHYN");
     expect(
       await page.evaluate(
         () => document.documentElement.scrollWidth <= window.innerWidth,
@@ -578,7 +565,7 @@ test("owner can upload, reorder, preview, publish, unpublish and delete a listin
   const { state, uploads } = await mockBackend(page);
   await login(page);
   await expect(
-    page.getByRole("heading", { name: "Your Verimarts catalogue." }),
+    page.getByRole("heading", { name: "Your FASHYN catalogue." }),
   ).toBeVisible();
   await page.getByRole("button", { name: "Create listing" }).click();
   await page.getByLabel("Title", { exact: true }).fill("New farm listing");
@@ -624,7 +611,7 @@ test("owner can upload, reorder, preview, publish, unpublish and delete a listin
   await expect(record).toHaveCount(0);
   await page.getByRole("button", { name: "Log out" }).click();
   await expect(
-    page.getByRole("heading", { name: "Sign in to Verimarts." }),
+    page.getByRole("heading", { name: "Sign in to FASHYN." }),
   ).toBeVisible();
 });
 
@@ -756,9 +743,9 @@ test("mobile pages fit, nav resets scroll, and fixed header follows scroll direc
   await page.getByRole("button", { name: "Open navigation" }).click();
   await page
     .getByRole("navigation", { name: "Main navigation" })
-    .getByRole("link", { name: "Livelong Farm", exact: true })
+    .getByRole("link", { name: "Collection", exact: true })
     .click();
-  await expect(page).toHaveURL(/livelong-farm$/);
+  await expect(page).toHaveURL(/shop$/);
   for (const path of [
     "/",
     "/shop",
@@ -805,7 +792,7 @@ test("intro still skips, remembers the session, replays and respects reduced mot
   await mockBackend(page);
   await page.goto("/");
   await expect(page.getByRole("dialog")).toBeVisible();
-  await expect(page.getByRole("dialog").locator("video")).toHaveCount(0);
+  await expect(page.getByRole("dialog").locator("video")).toHaveCount(1);
   await page.getByRole("button", { name: "Skip intro" }).click();
   await expect(page.getByRole("dialog")).toHaveCount(0);
   await page.reload();

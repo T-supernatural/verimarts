@@ -12,8 +12,7 @@ export const categories = [
   {
     id: "livelong-farm",
     name: "Livelong Farm",
-    description:
-      "Verimarts’ farm produce and aquaculture section, handled by Livelong Farm.",
+    description: "A curated destination for quality and considered choices.",
   },
   {
     id: "electronics",
@@ -28,11 +27,11 @@ export const categories = [
   {
     id: "other-goods",
     name: "Other Goods",
-    description: "Explore general merchandise from Verimarts.",
+    description: "Explore considered pieces and everyday essentials.",
   },
 ] as const;
 export type Category = (typeof categories)[number]["id"] | "farm-produce"; // Legacy database records remain readable.
-export const journalName = "Verimarts Journal"; // Working title: change here.
+export const journalName = "FASHYN Journal"; // Working title: change here.
 export type Publication = "draft" | "published";
 export type Availability =
   "available" | "unavailable" | "sold" | "not-provided";

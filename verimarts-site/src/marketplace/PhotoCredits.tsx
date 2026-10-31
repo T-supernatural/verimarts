@@ -10,7 +10,7 @@ export function PhotoCredits() {
         <p>
           Credits for the illustrative product photography. These images show
           the types of items in the catalogue and are not photographs of
-          verified Verimarts stock.
+          verified FASHYN stock.
         </p>
         <p className="small muted">
           Images are downloaded at reduced resolution and cropped to fit cards.

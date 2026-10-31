@@ -16,7 +16,7 @@ ReactDOM.createRoot(document.getElementById("root")!).render(
         <Suspense
           fallback={
             <p role="status" className="empty-state">
-              Loading Verimarts…
+              Loading FASHYN…
             </p>
           }
         >

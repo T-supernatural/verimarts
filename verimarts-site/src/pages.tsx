@@ -20,7 +20,7 @@ function ContactCallout() {
       <div>
         <span className="eyebrow">START A CONVERSATION</span>
         <h2>See something you like?</h2>
-        <p>Confirm the details directly with Verimarts.</p>
+        <p>Find your next piece with FASHYN.</p>
       </div>
       <Link to="/contact" className="button white">
         Let’s talk <ArrowUpRight size={19} />
@@ -50,14 +50,14 @@ export function About({ replay }: { replay: () => void }) {
     <>
       <Reveal className="section">
         <PageHeading
-          eyebrow="ABOUT VERIMARTS"
-          title="Driven by choice."
-          copy="Discover listings and published writing from one owner."
+          eyebrow="ABOUT FASHYN"
+          title="Style, with intention."
+          copy="Discover a considered point of view on modern fashion."
         />
         <div className="about-layout">
           <img
             src="/assets/logo.png"
-            alt="Supplied Verimarts geometric road-inspired V logo"
+            alt="FASHYN wordmark"
           />
           <div>
             <h2>
@@ -66,14 +66,12 @@ export function About({ replay }: { replay: () => void }) {
               with a closer look.
             </h2>
             <p>
-              Verimarts is a single-owner marketplace and publishing storefront.
-              Discover cars, property, farm produce, electronics, other goods,
-              and the owner’s published writing under one brand.
+              FASHYN is a premium fashion brand shaped by quality, confidence,
+              and modern style for every generation.
             </p>
             <p>
               Browse at your own pace, review the information available, and
-              speak directly with the business about your next steps.
-              Transactions are arranged directly with Verimarts.
+              speak directly with FASHYN about your next style choice.
             </p>
             <button className="button secondary" onClick={replay}>
               <Play size={17} />
@@ -105,7 +103,7 @@ export function Services() {
         <PageHeading
           eyebrow="WHAT WE DO"
           title="A focused marketplace experience."
-          copy="Listing discovery and direct enquiries are the foundation of Verimarts."
+          copy="A refined discovery experience for the pieces that feel like you."
         />
         <div className="service-grid">
           <article>
@@ -126,8 +124,8 @@ export function Services() {
             <span className="eyebrow red-text">02 / CUSTOMER ENQUIRIES</span>
             <h2>Ask. Understand. Decide.</h2>
             <p>
-              Continue the conversation directly with Verimarts to ask questions
-              and understand the next steps.
+              Continue the conversation directly with FASHYN to ask questions
+              and find the right fit.
             </p>
             <Link to="/contact" className="text-link">
               Contact details <ArrowUpRight size={18} />
@@ -152,7 +150,7 @@ export function Contact() {
       <PageHeading
         eyebrow="START A CONVERSATION"
         title="Let’s talk about your next find."
-        copy="Listing questions, availability, and next steps — confirmed directly with Verimarts."
+        copy="Questions about the collection, fit, or availability? We are here to help."
       />
       <div className="contact-layout">
         <div>

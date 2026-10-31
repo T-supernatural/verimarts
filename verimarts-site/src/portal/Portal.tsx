@@ -34,7 +34,7 @@ export default function Portal() {
   const [notice, setNotice] = useState("");
   const [busy, setBusy] = useState(false);
   useEffect(() => {
-    document.title = "Owner portal | Verimarts";
+    document.title = "Owner portal | FASHYN";
     document.querySelector('meta[name="robots"]')?.remove();
     const meta = document.createElement("meta");
     meta.name = "robots";
@@ -155,8 +155,8 @@ export default function Portal() {
   return (
     <div className="portal">
       <header className="portal-header">
-        <img src="/assets/logo.png" alt="Verimarts" />
-        <span>PRIVATE OWNER PORTAL</span>
+        <img src="/assets/fashyn-wordmark.png" alt="FASHYN" />
+        <span>PRIVATE STORE PORTAL</span>
         {session && (
           <button className="button secondary" onClick={() => void logout()}>
             Log out
@@ -178,8 +178,8 @@ export default function Portal() {
         ) : access === "signed-out" ? (
           <div className="owner-login">
             <span className="eyebrow red-text">OWNER ACCESS ONLY</span>
-            <h1>Sign in to Verimarts.</h1>
-            <p className="muted">Manage listings and published writing.</p>
+            <h1>Sign in to FASHYN.</h1>
+            <p className="muted">Manage the collection and published writing.</p>
             <form className="owner-form" onSubmit={signIn}>
               <label>
                 Owner email
@@ -223,7 +223,7 @@ export default function Portal() {
         ) : access === "denied" ? (
           <div className="content-pending" role="alert">
             <h1>Owner access required</h1>
-            <p>This account is not authorized to manage Verimarts.</p>
+            <p>This account is not authorized to manage FASHYN.</p>
             <button className="button secondary" onClick={() => void logout()}>
               Sign out
             </button>
@@ -395,7 +395,7 @@ function OwnerWorkspace() {
         <>
           <div className="page-heading">
             <span className="eyebrow red-text">SINGLE-OWNER WORKSPACE</span>
-            <h1>Your Verimarts catalogue.</h1>
+            <h1>Your FASHYN catalogue.</h1>
           </div>
           <div className="content-pending">
             <h2>Handover catalogue</h2>

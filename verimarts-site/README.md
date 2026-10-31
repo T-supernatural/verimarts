@@ -1,6 +1,6 @@
-# Verimarts marketplace
+# FASHYN storefront and owner portal
 
-The existing React/Vite/TypeScript storefront now supports a single owner's Cars, Property, Farm & Produce, Livelong Farm, Paint Production, Electronics, Other Goods, and Journal. The approved geometric V logo, racing red/black/silver styling, logo reveal, scroll animations, and direction-aware navbar are preserved.
+The existing React/Vite/TypeScript application is being transformed into FASHYN, a premium clothing storefront. The current Supabase-backed catalogue and owner portal remain in place while the clothing commerce model is introduced incrementally.
 
 Public pages show published content only. The separate owner build includes sign-in, password recovery, dashboard, listing and article editors, previews, publishing, availability, confirmed deletion, and ordered image uploads with cover selection. Transactions remain direct enquiries: no vendors, customer accounts, checkout, payments, or comments.
 

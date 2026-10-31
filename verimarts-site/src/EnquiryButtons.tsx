@@ -38,7 +38,7 @@ export function EnquiryButtons({
           href={`tel:${business.phone.replace(/[^+\d]/g, "")}`}
         >
           <Phone size={17} />
-          Call Verimarts
+          Call FASHYN
         </a>
       )}
     </div>

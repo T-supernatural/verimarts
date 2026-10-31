@@ -10,8 +10,8 @@ export default defineConfig(({ mode }) => ({
       transformIndexHtml(html: string) {
         return mode === "portal"
           ? html.replace(
-              "<title>Verimarts | Find your next drive</title>",
-              '<meta name="robots" content="noindex, nofollow"/><title>Owner portal | Verimarts</title>',
+              "<title>FASHYN | Modern style, thoughtfully chosen.</title>",
+              '<meta name="robots" content="noindex, nofollow"/><title>Owner portal | FASHYN</title>',
             )
           : html;
       },

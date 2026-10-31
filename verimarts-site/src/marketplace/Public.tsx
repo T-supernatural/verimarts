@@ -14,7 +14,7 @@ import {
   ChevronRight,
   Paintbrush,
 } from "lucide-react";
-import { Reveal, HeroImage } from "../Motion";
+import { Reveal } from "../Motion";
 import { EnquiryButtons } from "../EnquiryButtons";
 import {
   categories,
@@ -35,6 +35,11 @@ const icons = {
   "livelong-farm": Sprout,
   "paint-production": Paintbrush,
 };
+const fashionCategories = [
+  { id: "women", name: "Women", description: "Refined pieces for your everyday." },
+  { id: "men", name: "Men", description: "Modern essentials with confidence." },
+  { id: "children", name: "Children", description: "Thoughtful style for every age." },
+] as const;
 export function usePublishedContent() {
   const [data, setData] = useState<{
     listings: Listing[];
@@ -99,7 +104,7 @@ function Empty({ kind = "listings" }: { kind?: string }) {
       <h2>No published {kind} yet.</h2>
       <p>New content will appear here when the owner publishes it.</p>
       <Link to="/contact" className="text-link">
-        Contact Verimarts <ArrowUpRight size={18} />
+        Contact FASHYN <ArrowUpRight size={18} />
       </Link>
     </div>
   );
@@ -196,72 +201,70 @@ export function MarketplaceHome() {
   return (
     <>
       <section className="hero">
-        <HeroImage />
         <div className="hero-shade" />
         <div className="hero-content">
           <div className="eyebrow">
             <span className="red-line" />
-            THE VERIMARTS MARKETPLACE
+            FASHYN / THE COLLECTION
           </div>
           <h1>
-            One marketplace.
+            Modern style.
             <br />
-            <span>Many possibilities.</span>
+            <span>Thoughtfully chosen.</span>
           </h1>
           <p>
-            Cars, property, farm produce, electronics, and everyday goods.
+            A refined point of view on clothing for men, women, and children.
             <br />
-            Explore the details. Start a conversation.
+            Discover pieces made to feel like you.
           </p>
           <div className="actions">
             <Link className="button primary" to="/shop">
-              Explore listings <ArrowUpRight size={19} />
+              Explore the collection <ArrowUpRight size={19} />
             </Link>
             <Link className="button glass" to="/livelong-farm">
-              <Sprout size={19} />
-              Livelong Farm
+              <ArrowUpRight size={19} />
+              About FASHYN
             </Link>
           </div>
         </div>
         <div className="hero-bottom">
-          <span>DRIVEN BY CHOICE.</span>
+          <span>STYLE, WITH INTENTION.</span>
           <span>SCROLL TO EXPLORE ↓</span>
         </div>
       </section>
       <div className="value-strip">
         <span>
           <Search size={21} />
-          Browse by category
+          Discover your style
         </span>
         <span>
           <Sprout size={21} />
-          Explore farm produce
+          Quality materials
         </span>
         <span>
           <MessageCircle size={21} />
-          Enquire directly
+          Personal service
         </span>
       </div>
       <Reveal className="section">
         <div className="section-heading">
           <div>
-            <span className="eyebrow red-text">DISCOVER VERIMARTS</span>
-            <h2>Find your next possibility.</h2>
+            <span className="eyebrow red-text">DISCOVER FASHYN</span>
+            <h2>Find your signature.</h2>
           </div>
           <Link className="text-link" to="/shop">
-            Shop all <ArrowUpRight size={18} />
+            View the collection <ArrowUpRight size={18} />
           </Link>
         </div>
         <div className="market-categories">
-          {categories.map((c) => {
-            const Icon = icons[c.id];
+          {fashionCategories.map((c) => {
             return (
               <Link
                 key={c.id}
-                className={`market-category ${c.id === "livelong-farm" ? "farm-highlight" : ""}`}
-                to={`/${c.id}`}
+                className="market-category"
+                to="/shop"
               >
-                <Icon size={28} />
+                <Package size={28} />
                 <h3>{c.name}</h3>
                 <p>{c.description}</p>
                 <ArrowUpRight size={20} />
@@ -271,7 +274,7 @@ export function MarketplaceHome() {
           <Link className="market-category" to="/journal">
             <BookOpen size={28} />
             <h3>{journalName}</h3>
-            <p>The owner’s published writing.</p>
+            <p>Stories, ideas, and the FASHYN point of view.</p>
             <ArrowUpRight size={20} />
           </Link>
         </div>
@@ -280,21 +283,20 @@ export function MarketplaceHome() {
         <div>
           <Sprout size={36} />
           <span className="eyebrow red-text">FARM & PRODUCE</span>
-          <h2>A core part of Verimarts.</h2>
+          <h2>Made for every expression.</h2>
           <p>
-            Verimarts’ farm section is handled by Livelong Farm. Explore
-            listings with units, quantities, availability, and harvest details
-            where provided.
+            FASHYN brings together a considered wardrobe for men, women, and
+            children, with quality and confidence at the centre.
           </p>
           <Link className="button primary" to="/livelong-farm">
-            Discover Livelong Farm <ArrowUpRight size={18} />
+            About FASHYN <ArrowUpRight size={18} />
           </Link>
           <p className="small">
-            Livelong Farm · Organic Farm Produce & Aquaculture.
+            Premium clothing · Modern essentials · Personal style.
           </p>
         </div>
         <div>
-          <h3>From the catalogue</h3>
+          <h3>The FASHYN promise</h3>
           {state.listings
             .filter((i) => i.category === "livelong-farm")
             .slice(0, 1)
@@ -305,7 +307,7 @@ export function MarketplaceHome() {
             !state.error &&
             !state.listings.some((i) => i.category === "livelong-farm") && (
               <p className="muted">
-                Livelong Farm listings will appear here when published.
+                A considered collection is coming soon.
               </p>
             )}
         </div>
@@ -313,11 +315,11 @@ export function MarketplaceHome() {
       <Reveal className="section">
         <div className="section-heading">
           <div>
-            <span className="eyebrow red-text">THE CATALOGUE</span>
-            <h2>Featured listings.</h2>
+            <span className="eyebrow red-text">THE COLLECTION</span>
+            <h2>Featured pieces.</h2>
           </div>
           <Link className="text-link" to="/shop">
-            View all listings <ArrowUpRight size={18} />
+            View the collection <ArrowUpRight size={18} />
           </Link>
         </div>
         <State {...state} />
@@ -340,7 +342,7 @@ export function MarketplaceHome() {
             <br />
             to conversation.
           </h2>
-          <p>Browse, review the details, and contact Verimarts directly.</p>
+          <p>Browse, review the details, and contact FASHYN directly.</p>
         </div>
         <div className="steps">
           {[
@@ -395,7 +397,7 @@ export function MarketplaceHome() {
         <div>
           <span className="eyebrow">START A CONVERSATION</span>
           <h2>See something you like?</h2>
-          <p>Confirm the details directly with Verimarts.</p>
+          <p>Find your next piece with FASHYN.</p>
         </div>
         <Link to="/contact" className="button white">
           Let’s talk <ArrowUpRight size={19} />
@@ -457,11 +459,11 @@ export function MarketplaceBrowse({
   return (
     <Reveal className="section showroom">
       <div className="page-heading">
-        <span className="eyebrow red-text">VERIMARTS MARKETPLACE</span>
+        <span className="eyebrow red-text">FASHYN / THE COLLECTION</span>
         {embedded ? <h2>Published farm listings</h2> : <h1>{title}</h1>}
         <p>
           {categories.find((c) => c.id === category)?.description ||
-            "Browse listings published by the owner. Contact Verimarts to confirm the details."}
+            "Explore the collection and contact FASHYN for personal assistance."}
         </p>
       </div>
       <div className="market-toolbar">
@@ -696,7 +698,7 @@ export function ListingPreview({ item }: { item: Listing }) {
         )}
         <div className="detail-note">
           Confirm availability, pricing, and transaction details directly with
-          Verimarts. An enquiry does not confirm a purchase or reservation.
+          FASHYN. An enquiry does not confirm a purchase or reservation.
         </div>
       </div>
     </div>
@@ -707,7 +709,7 @@ export function MarketplaceDetail() {
   const state = usePublishedContent();
   const item = state.listings.find((i) => i.slug === (slug || id));
   useEffect(() => {
-    if (item) document.title = `${item.title} | Verimarts`;
+    if (item) document.title = `${item.title} | FASHYN`;
   }, [item]);
   return (
     <Reveal className="section detail">

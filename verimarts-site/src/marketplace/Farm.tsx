@@ -95,11 +95,11 @@ export function FarmProfileView({
       <Reveal className="section farm-hero">
         <div>
           <Sprout size={36} />
-          <span className="eyebrow red-text">A VERIMARTS SUBSIDIARY</span>
+          <span className="eyebrow red-text">FASHYN COLLECTION NOTES</span>
           <h1>Livelong Farm</h1>
           <h2>{profile.heading}</h2>
           {profile.intro && <p className="preserve-lines">{profile.intro}</p>}
-          <p>The farm section of Verimarts, owned and run by Livelong Farm.</p>
+          <p>Explore the wider story behind the FASHYN collection.</p>
           <div className="actions">
             <a className="button primary" href="#farm-products">
               Explore farm products <ArrowUpRight size={18} />
