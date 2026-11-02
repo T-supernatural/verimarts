@@ -762,7 +762,7 @@ test.describe("owner portal", () => {
 });
 
 test.describe("loading page", () => {
-  test("plays the film, shows progress, skips, remembers and replays", async ({
+  test("plays the lookbook without video, skips, remembers and replays", async ({
     browser,
   }) => {
     const context = await browser.newContext();
@@ -771,7 +771,9 @@ test.describe("loading page", () => {
     await page.goto("/");
     const loader = page.getByRole("dialog", { name: "FASHYN is loading" });
     await expect(loader).toBeVisible();
-    await expect(loader.locator("video, svg.loader__logo")).toHaveCount(1);
+    await expect(loader.locator(".slat")).toHaveCount(6);
+    await expect(loader.locator(".slat__photo").first()).toBeVisible();
+    await expect(page.locator("video")).toHaveCount(0);
     await expect(loader.getByRole("progressbar")).toBeVisible();
     await expect(
       loader.getByRole("button", { name: "Skip intro" }),
@@ -791,11 +793,11 @@ test.describe("loading page", () => {
     const context = await browser.newContext();
     const page = await context.newPage();
     await mockBackend(page);
-    await page.route("**/media/fashyn-reveal.mp4", (route) => route.abort());
+    await page.route("**/media/loader/**", (route) => route.abort());
     await page.goto("/");
-    await expect(
-      page.getByRole("dialog", { name: "FASHYN is loading" }),
-    ).toHaveCount(0, { timeout: 9000 });
+    const loader = page.getByRole("dialog", { name: "FASHYN is loading" });
+    await expect(loader.getByRole("progressbar")).toBeVisible();
+    await expect(loader).toHaveCount(0, { timeout: 9000 });
     await expect(page.locator("h1")).toContainText("Modern style");
     await context.close();
   });
@@ -805,7 +807,7 @@ test.describe("loading page", () => {
     const page = await context.newPage();
     await mockBackend(page);
     await page.goto("/");
-    await expect(page.locator("video")).toHaveCount(0);
+    await expect(page.locator(".slat")).toHaveCount(0);
     await expect(page.getByRole("dialog")).toHaveCount(0, { timeout: 2000 });
     await context.close();
   });

@@ -2,7 +2,7 @@
 
 FASHYN is a clothing store for women, men and children, built with React, Vite, TypeScript and Supabase. There are two builds from one codebase:
 
-- **Storefront**: home, departments, filters, search, product pages, a bag, Journal and a first-visit loading film. Orders are sent as a WhatsApp message; the site takes no payments and creates no customer accounts.
+- **Storefront**: home, departments, filters, search, product pages, a bag, Journal and a first-visit loading sequence. Orders are sent as a WhatsApp message; the site takes no payments and creates no customer accounts.
 - **Owner portal**: private sign-in, dashboard, product and Journal editors, media uploads, previews, publishing and an archive of pre-clothing records.
 
 ## Local development
@@ -25,7 +25,7 @@ npm run test:security  # Runs the real SQL migrations in local PostgreSQL (PGlit
 npm test               # Browser tests against a mock backend
 ```
 
-Playwright needs Chromium (`npx playwright install chromium`), or set `PW_CHANNEL=chrome` to use an installed Chrome. Chrome is also the way to test the H.264 intro film.
+Playwright needs Chromium (`npx playwright install chromium`), or set `PW_CHANNEL=chrome` to use an installed Chrome.
 
 ## Brand
 
@@ -37,6 +37,8 @@ Playwright needs Chromium (`npx playwright install chromium`), or set `PW_CHANNE
 | Porcelain | `#FBF7F0` | Page background |
 
 Tokens live in `src/styles/base.css`. Type is Bricolage Grotesque (display) and Instrument Sans (body), both self-hosted. The wordmark in `src/brand/Logo.tsx` and `public/brand/` is a vector redraw of the supplied `FASHYN Minimalist Luxury Wordmark.png`, and the favicon is a new F-and-chevron mark. The chevron from the wordmark's A is the recurring graphic motif.
+
+The loading page, "The Lookbook" (`src/features/shop/components/LoadingScreen.tsx`), is an original sequence built in code with no video file. Six slanted panels spell FASHYN over cutting clothing photos from `public/media/loader/`, which are crops of images credited in `PHOTO_CREDITS.md`. Swap those files to feature real products.
 
 ## Project structure
 

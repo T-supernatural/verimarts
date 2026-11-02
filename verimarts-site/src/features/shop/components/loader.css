@@ -1,0 +1,222 @@
+/* "The Lookbook" loading sequence */
+.loader {
+  inset: 0;
+  overflow: hidden;
+  position: fixed;
+  z-index: 200;
+}
+.loader__sheet {
+  inset: 0;
+  position: absolute;
+}
+.loader__sheet--hibiscus {
+  background: var(--hibiscus);
+}
+.loader__sheet--marigold {
+  background: var(--marigold);
+}
+.loader__sheet--front {
+  background: var(--indigo);
+  color: var(--white);
+  display: grid;
+  overflow: hidden;
+}
+.loader__weave {
+  animation: weave-drift 14s linear infinite;
+  /* A woven field of the wordmark's chevron, after the repeat patterns of adire cloth. */
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='72' height='52'%3E%3Cpath d='M0 52L36 0l36 52H59L36 18 13 52z' fill='%23fff' fill-opacity='.045'/%3E%3C/svg%3E");
+  inset: 0;
+  position: absolute;
+}
+@keyframes weave-drift {
+  to {
+    background-position: 72px -104px;
+  }
+}
+
+/* Lookbook panels: one per letter, with slanted edges taken from the F's cut */
+.loader__reel {
+  display: grid;
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+  inset: 0 -2vw;
+  position: absolute;
+}
+.slat {
+  clip-path: polygon(16% 0, 100% 0, 84% 100%, 0 100%);
+  margin-inline: -1.6vw;
+  overflow: hidden;
+  position: relative;
+}
+.slat--indigo {
+  background: var(--indigo-deep);
+}
+.slat--hibiscus {
+  background: var(--hibiscus);
+}
+.slat--marigold {
+  background: var(--marigold);
+}
+.slat__photo {
+  animation: slat-cut 900ms cubic-bezier(0.22, 1, 0.36, 1) both;
+  height: 100%;
+  inset: 0;
+  object-fit: cover;
+  object-position: center 22%;
+  position: absolute;
+  width: 100%;
+}
+@keyframes slat-cut {
+  from {
+    transform: scale(1.22);
+  }
+}
+.slat::after {
+  background: linear-gradient(
+    180deg,
+    rgb(20 22 77 / 18%),
+    rgb(20 22 77 / 28%) 55%,
+    rgb(20 22 77 / 88%)
+  );
+  content: "";
+  inset: 0;
+  position: absolute;
+}
+.slat__letter {
+  color: var(--white);
+  filter: drop-shadow(0 6px 22px rgb(20 22 77 / 60%));
+  height: min(10.5vw, 24vh);
+  left: 50%;
+  position: absolute;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  width: auto;
+  z-index: 1;
+}
+
+/* Resolved title */
+.loader__title {
+  align-content: center;
+  display: grid;
+  gap: 22px;
+  justify-items: center;
+  padding-inline: 24px;
+  position: relative;
+  text-align: center;
+  z-index: 1;
+}
+.loader__logo {
+  --logo-accent: var(--marigold);
+  color: var(--white);
+  width: min(74vw, 620px);
+}
+.loader__tagline {
+  font-family: var(--font-display);
+  font-size: clamp(19px, 2.4vw, 30px);
+  font-weight: 600;
+}
+.loader__tagline span {
+  display: inline-block;
+  white-space: pre;
+}
+
+/* Footer: the progress bar is a running stitch, sewn by a needle */
+.loader__footer {
+  bottom: 0;
+  display: grid;
+  gap: 8px;
+  left: 0;
+  padding: 0 clamp(20px, 4vw, 56px) clamp(14px, 2.4vw, 28px);
+  position: absolute;
+  right: 0;
+  z-index: 2;
+}
+.stitch {
+  height: 12px;
+  position: relative;
+}
+.stitch::before,
+.stitch__thread {
+  height: 3px;
+  left: 0;
+  position: absolute;
+  right: 0;
+  top: 4px;
+}
+.stitch::before {
+  background: rgb(255 255 255 / 24%);
+  content: "";
+  height: 1px;
+  top: 5px;
+}
+.stitch__thread {
+  background: repeating-linear-gradient(
+    90deg,
+    var(--marigold) 0 16px,
+    transparent 16px 26px
+  );
+  transition: clip-path 120ms linear;
+}
+.stitch__needle {
+  background: linear-gradient(90deg, var(--marigold), var(--white));
+  clip-path: polygon(0 35%, 100% 50%, 0 65%);
+  height: 12px;
+  margin-left: -4px;
+  position: absolute;
+  top: 0;
+  transition: left 120ms linear;
+  width: 30px;
+}
+.loader__row {
+  align-items: center;
+  display: flex;
+  justify-content: space-between;
+  min-height: 44px;
+}
+.loader__status {
+  display: inline-flex;
+  font-size: 14px;
+  font-weight: 500;
+  gap: 12px;
+}
+.loader__status b {
+  font-feature-settings: "tnum";
+  font-weight: 700;
+}
+.loader__skip {
+  align-items: center;
+  display: inline-flex;
+  font-size: 14px;
+  font-weight: 600;
+  gap: 8px;
+  margin-left: auto;
+  min-height: 44px;
+  padding-inline: 8px;
+}
+.loader__skip:hover {
+  color: var(--marigold);
+}
+.loader :focus-visible {
+  outline-color: var(--marigold);
+}
+
+/* Phones: a 3 x 2 contact sheet, so letters and photos stay large */
+@media (max-width: 720px) {
+  .loader__reel {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    grid-template-rows: repeat(2, minmax(0, 1fr));
+    inset: 0 -3vw;
+  }
+  .slat {
+    clip-path: polygon(11% 0, 100% 0, 89% 100%, 0 100%);
+    margin-block: -1px;
+    margin-inline: -3vw;
+  }
+  .slat__letter {
+    height: min(18vw, 13vh);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .loader__title {
+    height: 100%;
+  }
+}
