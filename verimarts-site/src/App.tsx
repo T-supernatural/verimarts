@@ -1,8 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import {
-  Link,
   Navigate,
-  NavLink,
   Route,
   Routes,
   useLocation,
@@ -10,10 +8,6 @@ import {
 import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
 import {
   ArrowRight,
-  ArrowUpRight,
-  Menu,
-  X,
-  Play,
 } from "lucide-react";
 import { LogoTransparencyFilter } from "./Motion";
 import { About, Services, Contact, NotFound } from "./pages";
@@ -27,14 +21,10 @@ import {
 import { categories, journalName } from "./data/marketplace";
 import { PhotoCredits } from "./marketplace/PhotoCredits";
 import { LivelongFarm } from "./marketplace/Farm";
-import { business, whatsappUrl } from "./config/business";
-const links = [
-  ["/", "Home"],
-  ["/shop", "Collection"],
-  ["/journal", "Journal"],
-  ["/about", "About"],
-  ["/contact", "Contact"],
-];
+import {
+  StorefrontPlaceholder,
+  StorefrontShell,
+} from "./features/shop/components/StorefrontShell";
 function sessionSeen() {
   try {
     return (
@@ -95,27 +85,7 @@ function Intro({ close }: { close: () => void }) {
 }
 export default function App() {
   const [intro, setIntro] = useState(!sessionSeen());
-  const [menu, setMenu] = useState(false);
-  const [headerHidden, setHeaderHidden] = useState(false);
   const location = useLocation();
-  const closeNavigation = () => {
-    setMenu(false);
-    window.scrollTo({ top: 0, behavior: "instant" });
-  };
-  useEffect(() => {
-    return undefined;
-  }, []);
-  useEffect(() => {
-    let previous = Math.max(0, window.scrollY);
-    const onScroll = () => {
-      const current = Math.max(0, window.scrollY);
-      if (current === previous) return;
-      setHeaderHidden(current > 90 && current > previous);
-      previous = current;
-    };
-    window.addEventListener("scroll", onScroll, { passive: true });
-    return () => window.removeEventListener("scroll", onScroll);
-  }, []);
   const close = useCallback(() => {
     try {
       sessionStorage.setItem("fashyn-intro", "seen");
@@ -149,59 +119,21 @@ export default function App() {
     <>
       <LogoTransparencyFilter />
       <AnimatePresence>{intro && <Intro close={close} />}</AnimatePresence>
-      <div inert={intro}>
+      <div className="fashyn-store" inert={intro}>
         <a href="#main" className="skip-link">
           Skip to content
         </a>
-        <header
-          className={`header${headerHidden && !menu ? " header--hidden" : ""}`}
-        >
-          <Link
-            to="/"
-            className="brand"
-            aria-label="FASHYN home"
-            onClick={() => window.scrollTo({ top: 0, behavior: "instant" })}
-          >
-            <img src="/assets/fashyn-wordmark.png" alt="FASHYN" />
-          </Link>
-          <nav
-            className={menu ? "nav open" : "nav"}
-            aria-label="Main navigation"
-          >
-            <NavLink to="/" end onClick={closeNavigation}>
-              Home
-            </NavLink>
-            {links.slice(1).map(([to, label]) => (
-                <NavLink
-                  end={to === "/"}
-                  key={to}
-                  to={to}
-                  onClick={closeNavigation}
-                >
-                  {label}
-                </NavLink>
-              ))}
-          </nav>
-          <Link
-            to="/shop"
-            className="header-cta"
-            onClick={() => window.scrollTo({ top: 0, behavior: "instant" })}
-          >
-            Explore collection <ArrowUpRight size={17} />
-          </Link>
-          <button
-            className="menu-toggle"
-            aria-label={menu ? "Close navigation" : "Open navigation"}
-            aria-expanded={menu}
-            onClick={() => setMenu(!menu)}
-          >
-            {menu ? <X /> : <Menu />}
-          </button>
-        </header>
-        <main id="main">
+        <StorefrontShell onReplayIntro={() => setIntro(true)}>
           <Routes>
             <Route path="/" element={<Home />} />
             <Route path="/shop" element={<MarketplaceBrowse />} />
+            <Route path="/women" element={<StorefrontPlaceholder title="Women" />} />
+            <Route path="/men" element={<StorefrontPlaceholder title="Men" />} />
+            <Route path="/children" element={<StorefrontPlaceholder title="Children" />} />
+            <Route path="/new-arrivals" element={<StorefrontPlaceholder title="New arrivals" />} />
+            <Route path="/sale" element={<StorefrontPlaceholder title="Sale" />} />
+            <Route path="/search" element={<StorefrontPlaceholder title="Search" />} />
+            <Route path="/bag" element={<StorefrontPlaceholder title="Your bag" />} />
             <Route
               path="/farm-produce"
               element={<Navigate to="/livelong-farm" replace />}
@@ -236,85 +168,7 @@ export default function App() {
             <Route path="/photo-credits" element={<PhotoCredits />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
-        </main>
-        <footer>
-          <div className="footer-invitation">
-            <div>
-              <span className="eyebrow">FIND YOUR NEXT POSSIBILITY</span>
-              <h2>Take a closer look.</h2>
-              <p>Explore the collection. Find your FASHYN.</p>
-            </div>
-            <Link className="button" to="/shop">
-              Explore collection <ArrowUpRight size={20} />
-            </Link>
-          </div>
-          <div className="footer-top">
-            <div>
-              <img
-                className="footer-logo"
-                src="/assets/fashyn-wordmark.png"
-                alt="FASHYN"
-              />
-              <p>
-                Your signature starts
-                <br />
-                with FASHYN.
-              </p>
-            </div>
-            <div>
-              <span className="eyebrow">THE COLLECTION</span>
-              <Link to="/shop">Shop the collection</Link>
-              <Link to="/shop">New arrivals</Link>
-              <Link to="/shop">Featured pieces</Link>
-              <Link to="/shop">Women · Men · Children</Link>
-            </div>
-            <div>
-              <span className="eyebrow">DISCOVER FASHYN</span>
-              <Link to="/about">Our story</Link>
-              <Link to="/journal">{journalName}</Link>
-              <Link to="/contact">
-                Contact FASHYN <ArrowUpRight size={15} />
-              </Link>
-              <Link className="footer-farm-note" to="/journal">
-                <span>
-                  FASHYN Journal<strong>Stories in style</strong>
-                </span>
-                <ArrowUpRight size={18} />
-              </Link>
-            </div>
-            <div className="footer-contact">
-              <span className="eyebrow">LET’S TALK</span>
-              <a
-                className="footer-whatsapp"
-                href={whatsappUrl()}
-                target="_blank"
-                rel="noopener noreferrer"
-              >
-                WhatsApp enquiry <ArrowUpRight size={18} />
-              </a>
-              <a href={`tel:${business.phone}`}>{business.phone}</a>
-              <a href={`mailto:${business.email}`}>{business.email}</a>
-              <p>WhatsApp: {business.whatsapp}</p>
-              <button
-                className="footer-top-button"
-                onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
-              >
-                Back to top ↑
-              </button>
-            </div>
-          </div>
-          <div className="footer-bottom">
-            <span>
-              © {new Date().getFullYear()} FASHYN. All rights reserved.
-            </span>
-            <span>Considered fashion · Personal service</span>
-            <Link to="/photo-credits">Photo credits</Link>
-            <button onClick={() => setIntro(true)}>
-              <Play size={13} />
-              Replay brand intro
-            </button>
-          </div>
-        </footer>
+        </StorefrontShell>
       </div>
     </>
   );

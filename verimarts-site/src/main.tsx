@@ -5,6 +5,7 @@ import { MotionConfig } from "framer-motion";
 import App from "./App";
 import "./styles.css";
 import "./marketplace.css";
+import "./fashyn-storefront.css";
 const Portal = lazy(() => import("./portal/Portal"));
 const portal =
   import.meta.env.MODE === "portal" ||
