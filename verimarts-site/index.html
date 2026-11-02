@@ -1,29 +1,63 @@
 <!doctype html>
-<html lang="en">
+<html lang="en-NG">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta name="theme-color" content="#000000" />
-    <link rel="icon" type="image/png" href="/assets/fashyn-wordmark.png" />
-    <link rel="apple-touch-icon" href="/assets/fashyn-wordmark.png" />
+    <meta name="theme-color" content="#1E2170" />
+    <link rel="icon" href="/brand/favicon.svg" type="image/svg+xml" />
+    <link rel="icon" href="/brand/favicon-32.png" sizes="32x32" type="image/png" />
+    <link rel="apple-touch-icon" href="/brand/apple-touch-icon.png" />
+    <link rel="manifest" href="/site.webmanifest" />
+    <title>FASHYN | Modern Clothing for Women, Men &amp; Children in Nigeria</title>
     <meta
       name="description"
-      content="FASHYN is a premium clothing brand for modern style, considered quality, and confident expression."
+      content="Shop FASHYN for modern dresses, tailoring, knitwear, childrenswear and accessories. Order easily on WhatsApp and confirm your size before you pay."
     />
+    <meta property="og:site_name" content="FASHYN" />
+    <meta property="og:locale" content="en_NG" />
+    <meta property="og:type" content="website" />
     <meta
       property="og:title"
-      content="FASHYN | Modern style, thoughtfully chosen."
+      content="FASHYN | Modern Clothing for Women, Men &amp; Children in Nigeria"
     />
     <meta
       property="og:description"
-      content="Discover FASHYN: a considered collection for men, women, and children."
+      content="Shop FASHYN for modern dresses, tailoring, knitwear, childrenswear and accessories. Order easily on WhatsApp and confirm your size before you pay."
     />
-    <meta property="og:type" content="website" />
-    <meta property="og:image" content="/assets/fashyn-wordmark.png" />
-    <title>FASHYN | Modern style, thoughtfully chosen.</title>
+    <meta property="og:image" content="/brand/og-image.jpg" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:image:alt" content="The FASHYN wordmark beside two fashion photographs" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta
+      name="twitter:title"
+      content="FASHYN | Modern Clothing for Women, Men &amp; Children in Nigeria"
+    />
+    <meta
+      name="twitter:description"
+      content="Shop FASHYN for modern dresses, tailoring, knitwear, childrenswear and accessories. Order easily on WhatsApp and confirm your size before you pay."
+    />
+    <meta name="twitter:image" content="/brand/og-image.jpg" />
+    <!--seo:route-->
+    <style>
+      /* Painted before any JavaScript, so the first visit is never a blank page. */
+      html { background: #1e2170; }
+      .boot { position: fixed; inset: 0; display: grid; place-items: center; background: #1e2170; }
+      .boot svg { width: min(58vw, 320px); height: auto; animation: boot 1.4s ease-in-out infinite alternate; }
+      @keyframes boot { from { opacity: .45; } to { opacity: 1; } }
+      @media (prefers-reduced-motion: reduce) { .boot svg { animation: none; } }
+    </style>
   </head>
   <body>
-    <div id="root"></div>
+    <div id="root">
+      <div class="boot" role="status" aria-label="Loading FASHYN">
+        <svg viewBox="0 0 1170 188" aria-hidden="true">
+          <path fill="#fff" d="M0 2H205L180 38H0ZM0 80H153L128 116H37V186H0ZM572 2L547 38H466A19 19 0 0 0 466 76H523A55 55 0 0 1 523 186H440L418 150H523A19 19 0 0 0 523 112H466A55 55 0 0 1 466 2ZM612 2H649V76H731V2H768V186H731V112H649V186H612ZM780 2H828L889 64L950 2H998L908 98V186H870V98ZM1003 2H1016L1133 95V2H1170V186L1040 65V186H1003Z" />
+          <path fill="#ffb627" d="M158 186L288 0L418 186H372L288 64L204 186Z" />
+        </svg>
+      </div>
+    </div>
+    <!--seo:noscript-->
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>

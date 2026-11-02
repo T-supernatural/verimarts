@@ -1,5 +1,5 @@
 {
-  "name": "verimarts-site",
+  "name": "fashyn-site",
   "private": true,
   "version": "0.1.0",
   "type": "module",
@@ -16,19 +16,20 @@
     "test:security": "node scripts/test-security.mjs"
   },
   "dependencies": {
+    "@fontsource-variable/bricolage-grotesque": "^5.3.0",
+    "@fontsource-variable/instrument-sans": "^5.3.0",
     "@supabase/supabase-js": "^2.117.3",
-    "@tailwindcss/vite": "^4.3.3",
     "framer-motion": "^14.0.0",
     "lucide-react": "^1.53.0",
     "react": "^19.3.0",
     "react-dom": "^19.3.0",
-    "react-router-dom": "^7.18.4",
-    "tailwindcss": "^4.3.3"
+    "react-router-dom": "^7.18.4"
   },
   "devDependencies": {
     "@electric-sql/pglite": "^0.5.8",
     "@eslint/js": "^10.0.1",
     "@playwright/test": "^1.64.0",
+    "@types/node": "^26.6.6",
     "@types/react": "^19.3.0",
     "@types/react-dom": "^19.3.0",
     "@vitejs/plugin-react": "^6.1.2",

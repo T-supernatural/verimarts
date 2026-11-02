@@ -1,60 +1,55 @@
 # FASHYN storefront and owner portal
 
-The existing React/Vite/TypeScript application is being transformed into FASHYN, a premium clothing storefront. The current Supabase-backed catalogue and owner portal remain in place while the clothing commerce model is introduced incrementally.
+FASHYN is a clothing store for women, men and children, built with React, Vite, TypeScript and Supabase. There are two builds from one codebase:
 
-Public pages show published content only. The separate owner build includes sign-in, password recovery, dashboard, listing and article editors, previews, publishing, availability, confirmed deletion, and ordered image uploads with cover selection. Transactions remain direct enquiries: no vendors, customer accounts, checkout, payments, or comments.
-
-Supabase Auth, Postgres, and private Storage provide the backend. The migration enforces owner-only writes and published-only public reads through database and Storage policies. The owner has reported configuring Supabase and applying the migration. No deployment or DNS changes were made by the assistant.
+- **Storefront**: home, departments, filters, search, product pages, a bag, Journal and a first-visit loading film. Orders are sent as a WhatsApp message; the site takes no payments and creates no customer accounts.
+- **Owner portal**: private sign-in, dashboard, product and Journal editors, media uploads, previews, publishing and an archive of pre-clothing records.
 
 ## Local development
 
 ```sh
 cd verimarts-site
 npm install
+npm run dev          # Storefront at http://127.0.0.1:5173
+npm run dev:portal   # Portal at http://127.0.0.1:5174
 ```
 
-Copy `.env.example` to `.env.local`, configure the public Supabase credentials, and follow [SETUP.md](SETUP.md) to apply the migration and provision the authorized owner.
+Copy `.env.example` to `.env.local` to connect Supabase. **Without Supabase, the storefront previews the starter range**, so the design can be reviewed with no setup. The portal needs Supabase. See [SETUP.md](SETUP.md).
 
 ```sh
-npm run dev
-npm run dev:portal
-npm run build
-npm run build:portal
+npm run build          # Storefront -> dist
+npm run build:portal   # Portal -> dist-portal
 npm run lint
 npm run typecheck
-npm run test:security
-npm test
+npm run test:security  # Runs the real SQL migrations in local PostgreSQL (PGlite)
+npm test               # Browser tests against a mock backend
 ```
 
-The portal development server uses port 5174. Browser tests use isolated fixtures and a mock API; security tests execute the actual SQL migration in local PostgreSQL via PGlite. Hosted authentication, email delivery, and Storage still require verification against the owner's configured Supabase project.
+Playwright needs Chromium (`npx playwright install chromium`), or set `PW_CHANNEL=chrome` to use an installed Chrome. Chrome is also the way to test the H.264 intro film.
+
+## Brand
+
+| Colour | Hex | Use |
+| --- | --- | --- |
+| Adire Indigo | `#1E2170` | Primary brand colour, dark surfaces, main buttons |
+| Hibiscus | `#D81E5B` | Sale, accents, the A chevron on light backgrounds |
+| Marigold | `#FFB627` | Highlights and calls to action on indigo |
+| Porcelain | `#FBF7F0` | Page background |
+
+Tokens live in `src/styles/base.css`. Type is Bricolage Grotesque (display) and Instrument Sans (body), both self-hosted. The wordmark in `src/brand/Logo.tsx` and `public/brand/` is a vector redraw of the supplied `FASHYN Minimalist Luxury Wordmark.png`, and the favicon is a new F-and-chevron mark. The chevron from the wordmark's A is the recurring graphic motif.
 
 ## Project structure
 
-- `src/marketplace/Public.tsx`: category discovery, filters, galleries, listing details, Journal.
-- `src/portal/`: private authentication, dashboard, editors, media management.
-- `src/data/marketplace.ts`: categories, editable Journal name, typed content fields.
-- `src/data/contentRepository.ts`: replaceable content and media access layer.
-- `src/lib/supabase.ts`: browser client using public credentials only.
-- `supabase/migrations/`: schema, validation, atomic listing saves, RLS, Storage policies.
-- `scripts/test-security.mjs` and `tests/marketplace.spec.ts`: SQL and browser verification.
-- `netlify.toml` and `scripts/build-host.mjs`: separate storefront/portal hostname builds.
+- `src/features/shop/`: storefront pages and components, including `LoadingScreen.tsx`.
+- `src/store/`: the shared catalogue loader and the bag, which is saved in the browser.
+- `src/seo/`: per-page metadata, JSON-LD and the route list used by the build.
+- `vite.config.ts`: writes per-route HTML, `robots.txt` and `sitemap.xml` at build time.
+- `src/portal/`: owner sign-in, dashboard and editors.
+- `src/data/marketplace.ts`: departments, fields and shared types.
+- `src/data/contentRepository.ts`: content and media access.
+- `src/data/starterCatalogue.ts`: the illustrative starter range.
+- `supabase/migrations/`: schema, validation, RLS and Storage policies.
 
-See [SETUP.md](SETUP.md) for environment variables, owner provisioning, separate Netlify hostname configuration, security limits, and required business inputs.
+## Placeholder content
 
-## Supplied resources
-
-All four supplied scope PDFs were reviewed: the original business/MVP scopes and expanded marketplace business/website-and-portal scopes. Existing application code, assets, routes, scripts, and Netlify configuration were inspected before editing. Original resources remain untouched.
-
-The approved geometric V automotive logo is used in the navbar, footer, reveal, and favicon. The alternate logo remains unused. The supplied intro video serves as a reference for the existing sharp CSS reveal and is not played. Existing illustrative photography is retained as decoration and is not presented as verified stock.
-
-No confirmed inventory, articles, owner account, business contacts, or custom domain were supplied. Fictional catalogue records were removed; public empty states remain until the owner publishes real content. Optional contact variables remain unset rather than fabricating business details.
-
-## Handover content
-
-The owner dashboard's **Add / update handover content** button imports or upgrades 32 listings with illustrative covers and placeholder NGN prices, plus 10 Journal articles with covers. Public demo/sample labels have been removed at the user's request. The catalogue must be replaced with confirmed client facts and actual item photographs. Existing owner edits are preserved. The updated supabase/demo-content.sql provides the same import through trusted SQL. See SETUP.md for details.
-
-Product illustrations have been replaced with 26 locally hosted photographs. Source and license details: PHOTO_CREDITS.md and the public /photo-credits page. Existing database image paths remain compatible, so no catalogue re-import is needed.
-
-## Livelong Farm and Paint Production
-
-The new `/livelong-farm` landing page includes the supplied farm products, aquaculture offerings, addresses and functional contact links. `/paint-production` provides an empty category until the owner publishes real products. The portal includes a farm-page editor and both listing categories, with existing gallery, publishing, availability and delete controls. Apply `supabase/migrations/202610100001_farm_and_paint.sql` before deploying the updated code. See SETUP.md for steps and the missing flyer verification note.
+The starter range uses stock photography from Pexels with invented names, descriptions and NGN prices. It must be replaced with real products before trading. Credits are in [PHOTO_CREDITS.md](PHOTO_CREDITS.md) and on `/photo-credits`.

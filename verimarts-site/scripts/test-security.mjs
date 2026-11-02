@@ -196,58 +196,9 @@ try {
     "unpublished media select denied immediately",
   );
   await db.exec("reset role");
-  const demoSeed = await readFile("supabase/demo-content.sql", "utf8");
-  await db.exec(demoSeed);
-  await equal(
-    "select count(*)::int as value from public.listings where id::text like 'de000000-%'",
-    32,
-    "all demo listings satisfy schema validation",
-  );
-  await equal(
-    "select count(*)::int as value from public.articles where id::text like 'de000000-%'",
-    10,
-    "all sample articles satisfy schema validation",
-  );
-  await db.exec(
-    "update public.listings set title='Owner replacement' where slug='city-hatchback'",
-  );
-  await db.exec(demoSeed);
-  await equal(
-    "select count(*)::int as value from public.listings where id::text like 'de000000-%'",
-    32,
-    "rerunning seed does not duplicate listings",
-  );
-  await equal(
-    "select title='Owner replacement' as value from public.listings where slug='city-hatchback'",
-    true,
-    "seed preserves owner edits",
-  );
-  await role("anon");
-  await equal(
-    "select count(*)::int as value from public.articles",
-    10,
-    "published samples are visible publicly",
-  );
-  await equal(
-    "select count(*)::int as value from public.listing_images where listing_id::text like 'de000000-%'",
-    32,
-    "handover listings have image metadata",
-  );
-  await equal(
-    "select count(*)::int as value from public.listings where id::text like 'de000000-%' and price>0 and currency='NGN'",
-    32,
-    "handover listings have NGN prices",
-  );
-  await db.exec(
-    "reset role; update public.listings set title='Demo — Family sedan',slug='demo-family-sedan',price=null,currency=null where slug='family-sedan'",
-  );
-  await db.exec(demoSeed);
-  await equal(
-    "select title='Family sedan' and price=12500000 and slug='family-sedan' as value from public.listings where id='de000000-0000-4000-8000-000000000002'",
-    true,
-    "seed upgrades earlier labelled catalogue",
-  );
-  await db.exec("reset role");
+  const listingsBeforeFarm = (
+    await db.query("select count(*)::int as c from public.listings")
+  ).rows[0].c;
   await db.exec(
     await readFile(
       "supabase/migrations/202610100001_farm_and_paint.sql",
@@ -255,8 +206,8 @@ try {
     ),
   );
   await equal(
-    "select count(*)::int as value from public.listings where id::text like 'de000000-%'",
-    32,
+    "select count(*)::int as value from public.listings",
+    listingsBeforeFarm,
     "new migration preserves existing listings",
   );
   await role("anon");
@@ -368,6 +319,67 @@ try {
   await denied(
     `insert into storage.objects(bucket_id,name) values('catalogue-media','listings/${published}/bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb.mp4')`,
     "non-owner cannot upload video media",
+  );
+  await db.exec("reset role");
+  const earlierListings = (
+    await db.query(
+      "select count(*)::int as c from public.listings where category not in ('women','men','children','accessories')",
+    )
+  ).rows[0].c;
+  assert.ok(earlierListings > 0, "fixture includes earlier categories");
+  await db.exec(
+    await readFile(
+      "supabase/migrations/202611020001_fashion_catalogue.sql",
+      "utf8",
+    ),
+  );
+  const { starterListings, starterImages, starterArticles } = await import(
+    "../src/data/starterCatalogue.ts"
+  );
+  await role("authenticated", owner);
+  await db.query(
+    "insert into public.listings select * from jsonb_populate_recordset(null::public.listings,$1::jsonb)",
+    [JSON.stringify(starterListings)],
+  );
+  await db.query(
+    "insert into public.listing_images(listing_id,path,alt,position,is_cover) select listing_id,path,alt,position,is_cover from jsonb_populate_recordset(null::public.listing_images,$1::jsonb)",
+    [JSON.stringify(starterImages)],
+  );
+  await db.query(
+    "insert into public.articles select * from jsonb_populate_recordset(null::public.articles,$1::jsonb)",
+    [JSON.stringify(starterArticles)],
+  );
+  await equal(
+    "select count(*)::int as value from public.listings where category in ('women','men','children','accessories')",
+    starterListings.length,
+    "every starter product satisfies catalogue validation",
+  );
+  await denied(
+    "update public.listings set details='{\"make\":\"Invented\"}' where slug='ember-maxi-gown'",
+    "clothing departments reject vehicle fields",
+  );
+  await denied(
+    "update public.listings set details='{\"compare_at_price\":\"100\"}' where slug='ember-maxi-gown'",
+    "sale price must sit above the current price",
+  );
+  await denied(
+    "update public.listings set details='{\"compare_at_price\":\"abc\"}' where slug='ember-maxi-gown'",
+    "sale price must be numeric",
+  );
+  await equal(
+    "select count(*)::int as value from public.listings where category not in ('women','men','children','accessories')",
+    earlierListings,
+    "earlier records survive the fashion migration",
+  );
+  await role("authenticated", outsider);
+  await denied(
+    "insert into public.listings(category,title,slug,description,status) values('women','Unauthorized','unauthorized-dress','No','published')",
+    "unrelated account cannot create clothing products",
+  );
+  await role("anon");
+  await denied(
+    "insert into public.listings(category,title,slug,description,status) values('men','Anonymous','anonymous-shirt','No','published')",
+    "anonymous visitor cannot create clothing products",
   );
   console.log(
     `${assertions} PostgreSQL RLS, authorization, validation and Storage-policy assertions passed.`,

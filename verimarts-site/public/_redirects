@@ -1,1 +1,12 @@
+/cars /shop 301
+/property /shop 301
+/electronics /shop 301
+/other-goods /shop 301
+/paint-production /shop 301
+/farm-produce /shop 301
+/livelong-farm /shop 301
+/showroom /shop 301
+/showroom/* /shop 301
+/services /how-to-order 301
+/listings/* /product/:splat 301
 /* /index.html 200

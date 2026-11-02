@@ -1,30 +1,44 @@
-# Product photo credits
+# Photo credits
 
-Illustrative stock photographs for the handover catalogue, not photographs of verified Verimarts inventory. Reduced-resolution source downloads are stored locally; CSS crops images to fit listing cards. Photos retain the licenses linked below.
+Illustrative stock photography for the FASHYN site and starter catalogue, not photographs of verified stock. All images are from Pexels under the [Pexels License](https://www.pexels.com/license/). Files were resized and converted to WebP. Replace them with photographs of real products before trading.
 
-- **Apartment**: Modern living room with stylish furniture and a view of the outdoors in a cozy apartment setting.jpg, Shixart1985. [Source](https://commons.wikimedia.org/wiki/File:Modern_living_room_with_stylish_furniture_and_a_view_of_the_outdoors_in_a_cozy_apartment_setting.jpg) ? [CC BY 2.0](https://creativecommons.org/licenses/by/2.0). Local asset: /assets/handover/photos/apartment.jpg.
-- **Detached home**: a detached house, Pexels contributor (see source photograph). [Source](https://www.pexels.com/photo/a-detached-house-18095927/) ? [Pexels License](https://www.pexels.com/license/). Local asset: /assets/handover/photos/detached-home.jpg.
-- **Terraced home**: modern terraced houses estate, Pexels contributor (see source photograph). [Source](https://www.pexels.com/photo/modern-terraced-houses-estate-20000553/) ? [Pexels License](https://www.pexels.com/license/). Local asset: /assets/handover/photos/terraced-home.jpg.
-- **Commercial space**: Modern office space in historical building Børsen.jpg, Knud Winckelmann. [Source](https://commons.wikimedia.org/wiki/File:Modern_office_space_in_historical_building_B%C3%B8rsen.jpg) ? [CC BY-SA 3.0](https://creativecommons.org/licenses/by-sa/3.0). Local asset: /assets/handover/photos/commercial-space.jpg.
-- **Residential plot**: an empty field and modern apartment buildings, Pexels contributor (see source photograph). [Source](https://www.pexels.com/photo/an-empty-field-and-modern-apartment-buildings-17602526/) ? [Pexels License](https://www.pexels.com/license/). Local asset: /assets/handover/photos/residential-plot.jpg.
-- **Studio apartment**: Studio apartment in Finland.jpg, Aaaatu. [Source](https://commons.wikimedia.org/wiki/File:Studio_apartment_in_Finland.jpg) ? [CC BY-SA 4.0](https://creativecommons.org/licenses/by-sa/4.0). Local asset: /assets/handover/photos/studio-apartment.jpg.
-- **Fresh tomatoes**: red tomatoes in a bowl, Pexels contributor (see source photograph). [Source](https://www.pexels.com/photo/red-tomatoes-in-a-bowl-11369860/) ? [Pexels License](https://www.pexels.com/license/). Local asset: /assets/handover/photos/fresh-tomatoes.jpg.
-- **Maize grain**: Ab food 06.jpg, Andrey Butko. [Source](https://commons.wikimedia.org/wiki/File:Ab_food_06.jpg) ? [CC BY-SA 3.0](https://creativecommons.org/licenses/by-sa/3.0). Local asset: /assets/handover/photos/maize-grain.jpg.
-- **Cassava roots**: cassava root crops in close up photography, Pexels contributor (see source photograph). [Source](https://www.pexels.com/photo/cassava-root-crops-in-close-up-photography-7543161/) ? [Pexels License](https://www.pexels.com/license/). Local asset: /assets/handover/photos/cassava-roots.jpg.
-- **Yam tubers**: Yam Tubers stacked on a plastic table 03.jpg, Samsule2. [Source](https://commons.wikimedia.org/wiki/File:Yam_Tubers_stacked_on_a_plastic_table_03.jpg) ? [CC BY-SA 4.0](https://creativecommons.org/licenses/by-sa/4.0). Local asset: /assets/handover/photos/yam-tubers.jpg.
-- **Plantain bunches**: Bunch of Plantain.jpg, Menyea. [Source](https://commons.wikimedia.org/wiki/File:Bunch_of_Plantain.jpg) ? [CC BY-SA 4.0](https://creativecommons.org/licenses/by-sa/4.0). Local asset: /assets/handover/photos/plantain-bunches.jpg.
-- **Fresh peppers**: Peppers in water.jpg, ulleo. [Source](https://commons.wikimedia.org/wiki/File:Peppers_in_water.jpg) ? [CC0](http://creativecommons.org/publicdomain/zero/1.0/deed.en). Local asset: /assets/handover/photos/fresh-peppers.jpg.
-- **Leafy vegetables**: Fresh Spinach leaves.jpg, Charipearl. [Source](https://commons.wikimedia.org/wiki/File:Fresh_Spinach_leaves.jpg) ? [CC BY-SA 4.0](https://creativecommons.org/licenses/by-sa/4.0). Local asset: /assets/handover/photos/leafy-vegetables.jpg.
-- **Poultry eggs**: Egg cartons with chicken eggs 03.jpg, Krzysztof Golik. [Source](https://commons.wikimedia.org/wiki/File:Egg_cartons_with_chicken_eggs_03.jpg) ? [CC BY-SA 4.0](https://creativecommons.org/licenses/by-sa/4.0). Local asset: /assets/handover/photos/poultry-eggs.jpg.
-- **Laptop**: Laptop on desk book stacks (Unsplash).jpg, freddie marriage fredmarriage. [Source](https://commons.wikimedia.org/wiki/File:Laptop_on_desk_book_stacks_(Unsplash).jpg) ? [CC0](http://creativecommons.org/publicdomain/zero/1.0/deed.en). Local asset: /assets/handover/photos/laptop.jpg.
-- **Smartphone**: Blackview A60 Smartphone Android mobile phone and folio case.jpg, Acabashi. [Source](https://commons.wikimedia.org/wiki/File:Blackview_A60_Smartphone_Android_mobile_phone_and_folio_case.jpg) ? [CC BY-SA 4.0](https://creativecommons.org/licenses/by-sa/4.0). Local asset: /assets/handover/photos/smartphone.jpg.
-- **Tablet**: Tablet computer.jpg, KK IN HK. [Source](https://commons.wikimedia.org/wiki/File:Tablet_computer.jpg) ? [CC BY-SA 4.0](https://creativecommons.org/licenses/by-sa/4.0). Local asset: /assets/handover/photos/tablet.jpg.
-- **Smart television**: tv in a living room, Pexels contributor (see source photograph). [Source](https://www.pexels.com/photo/tv-in-a-living-room-19866439/) ? [Pexels License](https://www.pexels.com/license/). Local asset: /assets/handover/photos/smart-television.jpg.
-- **Refrigerator**: gray refrigerator in the kitchen, Pexels contributor (see source photograph). [Source](https://www.pexels.com/photo/gray-refrigerator-in-the-kitchen-4092029/) ? [Pexels License](https://www.pexels.com/license/). Local asset: /assets/handover/photos/refrigerator.jpg.
-- **Wireless headphones**: black over ear wireless bluetooth headphones, Pexels contributor (see source photograph). [Source](https://www.pexels.com/photo/black-over-ear-wireless-bluetooth-headphones-33034333/) ? [Pexels License](https://www.pexels.com/license/). Local asset: /assets/handover/photos/wireless-headphones.jpg.
-- **Office desk**: modern office interior with wooden desk, Pexels contributor (see source photograph). [Source](https://www.pexels.com/photo/modern-office-interior-with-wooden-desk-33827325/) ? [Pexels License](https://www.pexels.com/license/). Local asset: /assets/handover/photos/office-desk.jpg.
-- **Dining set**: dining table and chairs, Pexels contributor (see source photograph). [Source](https://www.pexels.com/photo/dining-table-and-chairs-3958957/) ? [Pexels License](https://www.pexels.com/license/). Local asset: /assets/handover/photos/dining-set.jpg.
-- **Sofa**: cozy room with green couch and chair, Pexels contributor (see source photograph). [Source](https://www.pexels.com/photo/cozy-room-with-green-couch-and-chair-5590281/) ? [Pexels License](https://www.pexels.com/license/). Local asset: /assets/handover/photos/sofa.jpg.
-- **Storage cabinet**: photo of a wooden cabinet, Pexels contributor (see source photograph). [Source](https://www.pexels.com/photo/photo-of-a-wooden-cabinet-11112749/) ? [Pexels License](https://www.pexels.com/license/). Local asset: /assets/handover/photos/storage-cabinet.jpg.
-- **Garden tools**: garden tools and green leaves on a white surface, Pexels contributor (see source photograph). [Source](https://www.pexels.com/photo/garden-tools-and-green-leaves-on-a-white-surface-8543388/) ? [Pexels License](https://www.pexels.com/license/). Local asset: /assets/handover/photos/garden-tools.jpg.
-- **Travel suitcase**: clothes and sunglasses in an open suitcase on a rug, Pexels contributor (see source photograph). [Source](https://www.pexels.com/photo/clothes-and-sunglasses-in-an-open-suitcase-on-a-rug-8933565/) ? [Pexels License](https://www.pexels.com/license/). Local asset: /assets/handover/photos/travel-suitcase.jpg.
+- **Ember maxi gown**: [Source](https://www.pexels.com/photo/1755428/). Local asset: `/media/products/ember-maxi-gown.webp`.
+- **Verdant swing dress**: [Source](https://www.pexels.com/photo/985635/). Local asset: `/media/products/verdant-swing-dress.webp`.
+- **Blush keyhole blouse**: [Source](https://www.pexels.com/photo/1036623/). Local asset: `/media/products/blush-keyhole-blouse.webp`.
+- **Coastline stripe shirt dress**: [Source](https://www.pexels.com/photo/1462637/). Local asset: `/media/products/coastline-stripe-shirt-dress.webp`.
+- **Apricot oversized shirt**: [Source](https://www.pexels.com/photo/1852382/). Local asset: `/media/products/apricot-oversized-shirt.webp`.
+- **Rose longline coat**: [Source](https://www.pexels.com/photo/2043590/). Local asset: `/media/products/rose-longline-coat.webp`.
+- **Bloom print jumpsuit**: [Source](https://www.pexels.com/photo/4380970/). Local asset: `/media/products/bloom-print-jumpsuit.webp`.
+- **Marigold soft knit**: [Source](https://www.pexels.com/photo/5325840/). Local asset: `/media/products/marigold-soft-knit.webp`.
+- **Midnight dot blouse**: [Source](https://www.pexels.com/photo/1021693/). Local asset: `/media/products/midnight-dot-blouse.webp`.
+- **Riviera oxford shirt**: [Source](https://www.pexels.com/photo/1043474/). Local asset: `/media/products/riviera-oxford-shirt.webp`.
+- **Onyx biker jacket**: [Source](https://www.pexels.com/photo/1124468/). Local asset: `/media/products/onyx-biker-jacket.webp`.
+- **Saffron pullover hoodie**: [Source](https://www.pexels.com/photo/1183266/). Local asset: `/media/products/saffron-pullover-hoodie.webp`.
+- **Washed denim jacket**: [Source](https://www.pexels.com/photo/1040945/). Local asset: `/media/products/washed-denim-jacket.webp`.
+- **Merlot three piece suit**: [Source](https://www.pexels.com/photo/1300550/). Local asset: `/media/products/merlot-three-piece-suit.webp`.
+- **Heritage check blazer**: [Source](https://www.pexels.com/photo/3755706/). Local asset: `/media/products/heritage-check-blazer.webp`.
+- **Camel overcoat**: [Source](https://www.pexels.com/photo/842811/). Local asset: `/media/products/camel-overcoat.webp`.
+- **Navy evening suit**: [Source](https://www.pexels.com/photo/1405963/). Local asset: `/media/products/navy-evening-suit.webp`.
+- **Sailor stripe set**: [Source](https://www.pexels.com/photo/1620765/). Local asset: `/media/products/sailor-stripe-set.webp`.
+- **Sailor stripe set (alternate view)**: [Source](https://www.pexels.com/photo/1620760/). Local asset: `/media/products/sailor-stripe-set-2.webp`.
+- **Little gent braces set**: [Source](https://www.pexels.com/photo/1094084/). Local asset: `/media/products/little-gent-braces-set.webp`.
+- **Sunshine cable vest**: [Source](https://www.pexels.com/photo/1619697/). Local asset: `/media/products/sunshine-cable-vest.webp`.
+- **Everyday crew sweatshirt**: [Source](https://www.pexels.com/photo/5560019/). Local asset: `/media/products/everyday-crew-sweatshirt.webp`.
+- **Stripe knit pullover**: [Source](https://www.pexels.com/photo/1104007/). Local asset: `/media/products/stripe-knit-pullover.webp`.
+- **Weekend loafers**: [Source](https://www.pexels.com/photo/267320/). Local asset: `/media/products/weekend-loafers.webp`.
+- **Cloud knit sneakers**: [Source](https://www.pexels.com/photo/1464625/). Local asset: `/media/products/cloud-knit-sneakers.webp`.
+- **Trailhead backpack**: [Source](https://www.pexels.com/photo/2905238/). Local asset: `/media/products/trailhead-backpack.webp`.
+- **Tassel drop earrings**: [Source](https://www.pexels.com/photo/1454167/). Local asset: `/media/products/tassel-drop-earrings.webp`.
+- **Editorial: Hero main**: [Source](https://www.pexels.com/photo/2983464/). Local asset: `/media/editorial/hero-main.webp`.
+- **Editorial: Hero side**: [Source](https://www.pexels.com/photo/1852382/). Local asset: `/media/editorial/hero-side.webp`.
+- **Editorial: Women**: [Source](https://www.pexels.com/photo/2235071/). Local asset: `/media/editorial/women.webp`.
+- **Editorial: Men**: [Source](https://www.pexels.com/photo/842811/). Local asset: `/media/editorial/men.webp`.
+- **Editorial: Children**: [Source](https://www.pexels.com/photo/1620763/). Local asset: `/media/editorial/children.webp`.
+- **Editorial: Accessories**: [Source](https://www.pexels.com/photo/298863/). Local asset: `/media/editorial/accessories.webp`.
+- **Editorial: Store**: [Source](https://www.pexels.com/photo/1488463/). Local asset: `/media/editorial/store.webp`.
+- **Editorial: Rail**: [Source](https://www.pexels.com/photo/7679720/). Local asset: `/media/editorial/rail.webp`.
+- **Editorial: Hangers**: [Source](https://www.pexels.com/photo/996329/). Local asset: `/media/editorial/hangers.webp`.
+- **Editorial: Blue rack**: [Source](https://www.pexels.com/photo/325876/). Local asset: `/media/editorial/blue-rack.webp`.
+- **Editorial: Print**: [Source](https://www.pexels.com/photo/1078958/). Local asset: `/media/editorial/print.webp`.
+- **Editorial: Denim flatlay**: [Source](https://www.pexels.com/photo/934070/). Local asset: `/media/editorial/denim-flatlay.webp`.
+- **Editorial: Colour**: [Source](https://www.pexels.com/photo/3768005/). Local asset: `/media/editorial/colour.webp`.

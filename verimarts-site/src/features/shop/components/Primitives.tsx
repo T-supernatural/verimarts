@@ -1,36 +1,48 @@
-import {
-  useEffect,
-  useId,
-  useRef,
-  useState,
-  type CSSProperties,
-  type ImgHTMLAttributes,
-  type ReactNode,
-} from "react";
+import { useEffect, useId, useRef, useState, type ReactNode } from "react";
 import { createPortal } from "react-dom";
+import { Link } from "react-router-dom";
+import { motion, useReducedMotion } from "framer-motion";
 import { ChevronDown, Minus, Plus, X } from "lucide-react";
 
-function useOverlay(open: boolean, onClose: () => void, restoreRef?: React.RefObject<HTMLElement | null>) {
-  const firstRef = useRef<HTMLElement | null>(null);
+export function Reveal({
+  children,
+  className,
+}: {
+  children: ReactNode;
+  className?: string;
+}) {
+  const reduced = useReducedMotion();
+  return (
+    <motion.section
+      className={className}
+      initial={reduced ? false : { opacity: 0, y: 28 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      viewport={{ once: true, amount: "some" }}
+      transition={{ duration: 0.65, ease: [0.22, 1, 0.36, 1] }}
+    >
+      {children}
+    </motion.section>
+  );
+}
+
+function useOverlay(open: boolean, onClose: () => void) {
+  const firstRef = useRef<HTMLButtonElement | null>(null);
+  const panelRef = useRef<HTMLDivElement | null>(null);
   useEffect(() => {
     if (!open) return;
     const previous = document.activeElement as HTMLElement | null;
-    const restore = restoreRef?.current || previous;
     const previousOverflow = document.body.style.overflow;
     document.body.style.overflow = "hidden";
-    const focusFirst = () => {
-      firstRef.current?.focus();
-    };
     const onKeyDown = (event: KeyboardEvent) => {
       if (event.key === "Escape") {
         event.preventDefault();
         onClose();
         return;
       }
-      if (event.key !== "Tab") return;
+      if (event.key !== "Tab" || !panelRef.current) return;
       const focusable = Array.from(
-        document.querySelectorAll<HTMLElement>(
-          '[data-fashyn-overlay="true"] button:not([disabled]), [data-fashyn-overlay="true"] a[href], [data-fashyn-overlay="true"] input:not([disabled]), [data-fashyn-overlay="true"] select:not([disabled]), [data-fashyn-overlay="true"] textarea:not([disabled])',
+        panelRef.current.querySelectorAll<HTMLElement>(
+          "button:not([disabled]), a[href], input:not([disabled]), select:not([disabled]), textarea:not([disabled])",
         ),
       );
       if (!focusable.length) return;
@@ -44,16 +56,20 @@ function useOverlay(open: boolean, onClose: () => void, restoreRef?: React.RefOb
         first.focus();
       }
     };
-    const frame = window.requestAnimationFrame(focusFirst);
+    const frame = window.requestAnimationFrame(() => {
+      const preferred =
+        panelRef.current?.querySelector<HTMLElement>("[data-autofocus]");
+      (preferred || firstRef.current)?.focus();
+    });
     document.addEventListener("keydown", onKeyDown);
     return () => {
       window.cancelAnimationFrame(frame);
       document.removeEventListener("keydown", onKeyDown);
       document.body.style.overflow = previousOverflow;
-      restore?.focus?.();
+      previous?.focus?.();
     };
-  }, [open, onClose, restoreRef]);
-  return firstRef;
+  }, [open, onClose]);
+  return { firstRef, panelRef };
 }
 
 export function Drawer({
@@ -62,28 +78,47 @@ export function Drawer({
   title,
   side = "right",
   children,
+  footer,
 }: {
   open: boolean;
   onClose: () => void;
   title: string;
   side?: "left" | "right";
   children: ReactNode;
+  footer?: ReactNode;
 }) {
   const titleId = useId();
-  const firstRef = useOverlay(open, onClose);
+  const { firstRef, panelRef } = useOverlay(open, onClose);
   if (!open) return null;
   return createPortal(
-    <div className={`fashyn-overlay fashyn-overlay--${side}`} data-fashyn-overlay="true">
-      <button className="fashyn-overlay__scrim" aria-label="Close dialog" onClick={onClose} />
-      <aside className="fashyn-drawer" role="dialog" aria-modal="true" aria-labelledby={titleId}>
-        <div className="fashyn-drawer__header">
-          <h2 id={titleId} className="fashyn-display">{title}</h2>
-          <button ref={firstRef as React.RefObject<HTMLButtonElement>} className="fashyn-icon-button" aria-label="Close dialog" onClick={onClose}>
+    <div className={`overlay overlay--${side}`}>
+      <button
+        className="overlay__scrim"
+        aria-label="Close dialog"
+        tabIndex={-1}
+        onClick={onClose}
+      />
+      <div
+        ref={panelRef}
+        className="drawer"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby={titleId}
+      >
+        <div className="drawer__header">
+          <h2 id={titleId}>{title}</h2>
+          <button
+            ref={firstRef}
+            className="icon-button"
+            aria-label="Close dialog"
+            onClick={onClose}
+          >
             <X size={20} />
           </button>
         </div>
-        <div className="fashyn-drawer__content">{children}</div>
-      </aside>
+        <div className="drawer__content">{children}</div>
+        {footer && <div className="drawer__footer">{footer}</div>}
+      </div>
     </div>,
     document.body,
   );
@@ -101,20 +136,36 @@ export function Modal({
   children: ReactNode;
 }) {
   const titleId = useId();
-  const firstRef = useOverlay(open, onClose);
+  const { firstRef, panelRef } = useOverlay(open, onClose);
   if (!open) return null;
   return createPortal(
-    <div className="fashyn-overlay" data-fashyn-overlay="true">
-      <button className="fashyn-overlay__scrim" aria-label="Close dialog" onClick={onClose} />
-      <section className="fashyn-modal" role="dialog" aria-modal="true" aria-labelledby={titleId}>
-        <div className="fashyn-modal__header">
-          <h2 id={titleId} className="fashyn-display">{title}</h2>
-          <button ref={firstRef as React.RefObject<HTMLButtonElement>} className="fashyn-icon-button" aria-label="Close dialog" onClick={onClose}>
+    <div className="overlay overlay--top">
+      <button
+        className="overlay__scrim"
+        aria-label="Close dialog"
+        tabIndex={-1}
+        onClick={onClose}
+      />
+      <div
+        ref={panelRef}
+        className="modal"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby={titleId}
+      >
+        <div className="drawer__header">
+          <h2 id={titleId}>{title}</h2>
+          <button
+            ref={firstRef}
+            className="icon-button"
+            aria-label="Close dialog"
+            onClick={onClose}
+          >
             <X size={20} />
           </button>
         </div>
-        <div className="fashyn-modal__content">{children}</div>
-      </section>
+        <div className="modal__content">{children}</div>
+      </div>
     </div>,
     document.body,
   );
@@ -131,45 +182,35 @@ export function Accordion({
 }) {
   const [open, setOpen] = useState(defaultOpen);
   return (
-    <div className="fashyn-accordion">
-      <button className="fashyn-accordion__trigger" aria-expanded={open} onClick={() => setOpen((value) => !value)}>
+    <div className="accordion">
+      <button
+        type="button"
+        className="accordion__trigger"
+        aria-expanded={open}
+        onClick={() => setOpen((value) => !value)}
+      >
         <span>{title}</span>
         <ChevronDown size={18} className={open ? "is-open" : ""} />
       </button>
-      {open && <div className="fashyn-accordion__content">{children}</div>}
+      {open && <div className="accordion__content">{children}</div>}
     </div>
   );
 }
 
-export function ResponsiveImage({
-  alt,
-  fallback = "Image unavailable",
-  loading = "lazy",
-  width,
-  height,
-  ...props
-}: ImgHTMLAttributes<HTMLImageElement> & {
-  fallback?: ReactNode;
-  width: number;
-  height: number;
+export function Breadcrumbs({
+  items,
+}: {
+  items: { label: string; href?: string }[];
 }) {
-  const [failed, setFailed] = useState(false);
-  const style = { aspectRatio: `${width} / ${height}` } as CSSProperties;
-  return failed ? (
-    <div className="fashyn-image-fallback" style={style} role="img" aria-label={alt || (typeof fallback === "string" ? fallback : "Image unavailable")}>
-      {fallback}
-    </div>
-  ) : (
-    <img {...props} alt={alt} width={width} height={height} loading={loading} onError={() => setFailed(true)} />
-  );
-}
-
-export function Breadcrumbs({ items }: { items: { label: string; href?: string }[] }) {
   return (
-    <nav className="fashyn-breadcrumbs" aria-label="Breadcrumb">
+    <nav className="breadcrumbs" aria-label="Breadcrumb">
       {items.map((item, index) => (
         <span key={`${item.label}-${index}`}>
-          {item.href ? <a href={item.href}>{item.label}</a> : <span aria-current="page">{item.label}</span>}
+          {item.href ? (
+            <Link to={item.href}>{item.label}</Link>
+          ) : (
+            <span aria-current="page">{item.label}</span>
+          )}
           {index < items.length - 1 && <span aria-hidden="true"> / </span>}
         </span>
       ))}
@@ -180,41 +221,64 @@ export function Breadcrumbs({ items }: { items: { label: string; href?: string }
 export function QuantityStepper({
   value,
   min = 1,
-  max = 99,
+  max = 20,
   onChange,
+  label = "Quantity",
 }: {
   value: number;
   min?: number;
   max?: number;
   onChange: (value: number) => void;
+  label?: string;
 }) {
   return (
-    <div className="fashyn-quantity" aria-label="Quantity">
-      <button className="fashyn-icon-button" aria-label="Decrease quantity" disabled={value <= min} onClick={() => onChange(Math.max(min, value - 1))}><Minus size={16} /></button>
+    <div className="quantity" role="group" aria-label={label}>
+      <button
+        type="button"
+        className="icon-button"
+        aria-label="Decrease quantity"
+        disabled={value <= min}
+        onClick={() => onChange(Math.max(min, value - 1))}
+      >
+        <Minus size={15} />
+      </button>
       <span aria-live="polite">{value}</span>
-      <button className="fashyn-icon-button" aria-label="Increase quantity" disabled={value >= max} onClick={() => onChange(Math.min(max, value + 1))}><Plus size={16} /></button>
+      <button
+        type="button"
+        className="icon-button"
+        aria-label="Increase quantity"
+        disabled={value >= max}
+        onClick={() => onChange(Math.min(max, value + 1))}
+      >
+        <Plus size={15} />
+      </button>
     </div>
   );
 }
 
-export function Price({ price, compareAtPrice, currency = "NGN" }: { price: number; compareAtPrice?: number | null; currency?: string }) {
-  const format = (value: number) => new Intl.NumberFormat("en-NG", { style: "currency", currency, maximumFractionDigits: 0 }).format(value);
-  const sale = compareAtPrice != null && compareAtPrice > price;
-  return <span className={`fashyn-price${sale ? " fashyn-price--sale" : ""}`}>{format(price)}{sale && <span className="fashyn-price__compare">{format(compareAtPrice)}</span>}</span>;
+/** Chevron from the wordmark's A, used as the brand's recurring accent. */
+export function Chevron({ className }: { className?: string }) {
+  return (
+    <svg
+      className={`chevron${className ? ` ${className}` : ""}`}
+      viewBox="158 0 260 186"
+      aria-hidden="true"
+    >
+      <path d="M158 186L288 0L418 186H372L288 64L204 186Z" fill="currentColor" />
+    </svg>
+  );
 }
 
-export function Badge({ children }: { children: ReactNode }) {
-  return <span className="fashyn-badge">{children}</span>;
-}
-
-export function Skeleton({ width = "100%", height = 20 }: { width?: string | number; height?: number }) {
-  return <span className="fashyn-skeleton" aria-hidden="true" style={{ display: "block", width, height }} />;
-}
-
-export function EmptyState({ title, children }: { title: string; children?: ReactNode }) {
-  return <section className="fashyn-empty-state"><h2 className="fashyn-display">{title}</h2>{children}</section>;
-}
-
-export function ErrorState({ title = "Something went wrong", onRetry }: { title?: string; onRetry?: () => void }) {
-  return <section className="fashyn-error-state" role="alert"><p>{title}</p>{onRetry && <button className="fashyn-button fashyn-button--secondary" onClick={onRetry}>Try again</button>}</section>;
+export function ProductSkeleton({ count = 4 }: { count?: number }) {
+  return (
+    <div className="product-grid" role="status" aria-label="Loading products">
+      {Array.from({ length: count }, (_, index) => (
+        <div key={index} className="skeleton-card" aria-hidden="true">
+          <span className="skeleton skeleton--image" />
+          <span className="skeleton skeleton--line" />
+          <span className="skeleton skeleton--short" />
+        </div>
+      ))}
+    </div>
+  );
 }

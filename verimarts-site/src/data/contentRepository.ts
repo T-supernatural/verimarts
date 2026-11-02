@@ -4,15 +4,23 @@ import {
   supabasePublicConfig,
 } from "../lib/supabase";
 import type { Listing, Article, ListingImage } from "./marketplace";
-import handoverMedia from "./handoverMedia.json";
-import type { FarmProfile } from "./farm";
+import { fashionCategoryIds, isFashion } from "./marketplace";
+import {
+  starterArticles,
+  starterImages,
+  starterListings,
+  starterMedia,
+} from "./starterCatalogue";
 const bucket = "catalogue-media";
 function check(error: { message: string } | null) {
   if (error) throw new Error(error.message);
 }
+/** Starter files ship with the site; pre-clothing placeholders were retired. Neither is in Storage. */
+function isStored(path: string) {
+  return !starterMedia[path] && !path.endsWith("/handover-cover.svg");
+}
 async function imageUrl(path: string) {
-  const illustration = (handoverMedia as Record<string, string>)[path];
-  if (illustration) return illustration;
+  if (!isStored(path)) return starterMedia[path];
   const { data, error } = await requireBackend()
     .storage.from(bucket)
     .createSignedUrl(path, 3600);
@@ -20,124 +28,121 @@ async function imageUrl(path: string) {
   return data?.signedUrl;
 }
 export async function refreshMediaUrl(path: string) {
-  const illustration = (handoverMedia as Record<string, string>)[path];
-  if (illustration) return illustration;
-  const { data, error } = await requireBackend()
-    .storage.from(bucket)
-    .createSignedUrl(path, 3600);
-  check(error);
-  if (!data?.signedUrl)
-    throw new Error("Supabase did not return a media link.");
-  return data.signedUrl;
+  const url = await imageUrl(path);
+  if (!url) throw new Error("Supabase did not return a media link.");
+  return url;
+}
+/** One batched request, so a large catalogue does not sign images one at a time. */
+async function resolveUrls(paths: string[]) {
+  const urls = new Map<string, string | undefined>();
+  const stored = paths.filter(isStored);
+  paths
+    .filter((path) => !isStored(path))
+    .forEach((path) => urls.set(path, starterMedia[path]));
+  if (stored.length) {
+    const { data, error } = await requireBackend()
+      .storage.from(bucket)
+      .createSignedUrls(stored, 3600);
+    check(error);
+    data?.forEach((entry) => {
+      if (entry.path && entry.signedUrl) urls.set(entry.path, entry.signedUrl);
+    });
+  }
+  return urls;
 }
 export async function withListingImages(items: Listing[]) {
-  return Promise.all(
-    items.map(async (item) => ({
-      ...item,
-      category:
-        item.category === "farm-produce"
-          ? ("livelong-farm" as const)
-          : item.category,
-      images: await Promise.all(
-        (item.images || [])
-          .sort((a, b) => a.position - b.position)
-          .map(async (img) => ({ ...img, url: await imageUrl(img.path) })),
-      ),
-    })),
+  const urls = await resolveUrls(
+    items.flatMap((item) => (item.images || []).map((image) => image.path)),
   );
+  return items.map((item) => ({
+    ...item,
+    category:
+      item.category === "farm-produce"
+        ? ("livelong-farm" as const)
+        : item.category,
+    images: [...(item.images || [])]
+      .sort((a, b) => a.position - b.position)
+      .map((image) => ({ ...image, url: urls.get(image.path) })),
+  }));
 }
 async function withCovers(items: Article[]) {
-  return Promise.all(
-    items.map(async (item) => ({
-      ...item,
-      cover_url: item.cover_path ? await imageUrl(item.cover_path) : undefined,
-    })),
+  const urls = await resolveUrls(
+    items.flatMap((item) => (item.cover_path ? [item.cover_path] : [])),
   );
+  return items.map((item) => ({
+    ...item,
+    cover_url: item.cover_path ? urls.get(item.cover_path) : undefined,
+  }));
+}
+/** Without a backend (local preview) the site shows the starter range so it can be reviewed. */
+function previewListings(): Listing[] {
+  return starterListings.map((item) => ({
+    ...item,
+    images: starterImages
+      .filter((image) => image.listing_id === item.id)
+      .map((image) => ({ ...image, url: starterMedia[image.path] })),
+  }));
+}
+function previewArticles(): Article[] {
+  return starterArticles.map((item) => ({
+    ...item,
+    cover_url: starterMedia[item.cover_path],
+  }));
 }
 export const contentRepository = {
-  async farmProfile(owner = false): Promise<FarmProfile | null> {
-    if (!supabase) return null;
-    let query = supabase
-      .from("business_pages")
-      .select("*")
-      .eq("id", "livelong-farm");
-    if (!owner) query = query.eq("status", "published");
-    const { data, error } = await query.maybeSingle();
-    check(error);
-    if (!data || (!owner && data.status !== "published")) return null;
-    return data as FarmProfile;
-  },
-  async saveFarmProfile(profile: FarmProfile) {
-    check(
-      (
-        await requireBackend()
-          .from("business_pages")
-          .update(profile)
-          .eq("id", "livelong-farm")
-      ).error,
-    );
-  },
-  async addDemoContent() {
-    const { default: samples } = await import("./demoContent.json");
+  /** Owner-confirmed import of the illustrative launch range. Never overwrites existing records. */
+  async addStarterCatalogue() {
     const client = requireBackend();
     let added = 0;
-    for (const table of ["listings", "articles"] as const) {
-      const { data, error } = await client.from(table).select("id,slug,title");
-      check(error);
-      const existing = data || [];
-      const missing = samples[table].filter(
-        (sample) =>
-          !existing.some(
-            (row) => row.id === sample.id || row.slug === sample.slug,
-          ) ||
-          existing.some(
-            (row) =>
-              row.id === sample.id &&
-              row.title.startsWith(
-                table === "listings" ? "Demo — " : "Sample — ",
-              ),
-          ),
+    const listingRows = await client.from("listings").select("id,slug");
+    check(listingRows.error);
+    const newListings = starterListings.filter(
+      (sample) =>
+        !listingRows.data?.some(
+          (row) => row.id === sample.id || row.slug === sample.slug,
+        ),
+    );
+    if (newListings.length) {
+      check((await client.from("listings").insert(newListings)).error);
+      added += newListings.length;
+      const images = starterImages.filter((image) =>
+        newListings.some((item) => item.id === image.listing_id),
       );
-      if (missing.length) {
-        const result = await client.from(table).upsert(missing);
-        check(result.error);
-        added += missing.length;
-      }
+      check((await client.from("listing_images").insert(images)).error);
     }
-    const { data: images, error: imageError } = await client
-      .from("listing_images")
-      .select("listing_id");
-    check(imageError);
-    const covers = samples.listings
-      .filter((item) => !images?.some((image) => image.listing_id === item.id))
-      .map((item) => ({
-        listing_id: item.id,
-        path: `listings/${item.id}/handover-cover.svg`,
-        alt: `Illustrative image for ${item.title}`,
-        position: 0,
-        is_cover: true,
-      }));
-    if (covers.length)
-      check((await client.from("listing_images").insert(covers)).error);
+    const articleRows = await client.from("articles").select("id,slug");
+    check(articleRows.error);
+    const newArticles = starterArticles.filter(
+      (sample) =>
+        !articleRows.data?.some(
+          (row) => row.id === sample.id || row.slug === sample.slug,
+        ),
+    );
+    if (newArticles.length) {
+      check((await client.from("articles").insert(newArticles)).error);
+      added += newArticles.length;
+    }
     return added;
   },
   async listings(owner = false): Promise<Listing[]> {
-    if (!supabase) return [];
+    if (!supabase) return owner ? [] : previewListings();
     let q = supabase
       .from("listings")
       .select("*, images:listing_images(*)")
       .order("created_at", { ascending: false });
-    if (!owner) q = q.eq("status", "published");
+    if (!owner)
+      q = q.eq("status", "published").in("category", fashionCategoryIds);
     const { data, error } = await q;
     check(error);
     return withListingImages(
       (data as Listing[]).filter(
-        (item) => owner || item.status === "published",
+        (item) =>
+          owner || (item.status === "published" && isFashion(item.category)),
       ),
     );
   },
   async articles(owner = false): Promise<Article[]> {
-    if (!supabase) return [];
+    if (!supabase) return owner ? [] : previewArticles();
     let q = supabase
       .from("articles")
       .select("*")
@@ -150,28 +155,6 @@ export const contentRepository = {
         (item) => owner || item.status === "published",
       ),
     );
-  },
-  async listing(slug: string): Promise<Listing | null> {
-    if (!supabase) return null;
-    const { data, error } = await supabase
-      .from("listings")
-      .select("*, images:listing_images(*)")
-      .eq("status", "published")
-      .eq("slug", slug)
-      .maybeSingle();
-    check(error);
-    return data ? (await withListingImages([data as Listing]))[0] : null;
-  },
-  async article(slug: string): Promise<Article | null> {
-    if (!supabase) return null;
-    const { data, error } = await supabase
-      .from("articles")
-      .select("*")
-      .eq("status", "published")
-      .eq("slug", slug)
-      .maybeSingle();
-    check(error);
-    return data ? (await withCovers([data as Article]))[0] : null;
   },
   async saveListing(item: Listing) {
     const { images, ...row } = item;
@@ -377,11 +360,8 @@ export async function uploadMedia(
     url: await imageUrl(path),
   };
 }
-export const uploadImage = uploadMedia;
 export async function removeMedia(paths: string[]) {
-  paths = paths.filter(
-    (path) => !(handoverMedia as Record<string, string>)[path],
-  );
+  paths = paths.filter(isStored);
   if (!paths.length) return;
   const { error } = await requireBackend().storage.from(bucket).remove(paths);
   check(error);

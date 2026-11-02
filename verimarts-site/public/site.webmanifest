@@ -1,0 +1,13 @@
+{
+  "name": "FASHYN",
+  "short_name": "FASHYN",
+  "description": "Modern style, thoughtfully chosen. Clothing for women, men and children.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#1E2170",
+  "theme_color": "#1E2170",
+  "icons": [
+    { "src": "/brand/icon-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "/brand/icon-512.png", "sizes": "512x512", "type": "image/png" }
+  ]
+}

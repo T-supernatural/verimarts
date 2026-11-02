@@ -1,95 +1,54 @@
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
+import { Navigate, Route, Routes, useLocation, useParams } from "react-router-dom";
+import { AnimatePresence, useReducedMotion } from "framer-motion";
+import { categories } from "./data/marketplace";
+import { LoadingScreen } from "./features/shop/components/LoadingScreen";
+import { StorefrontShell } from "./features/shop/components/StorefrontShell";
+import { Catalogue } from "./features/shop/pages/Catalogue";
+import { Home } from "./features/shop/pages/Home";
 import {
-  Navigate,
-  Route,
-  Routes,
-  useLocation,
-} from "react-router-dom";
-import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
-import {
-  ArrowRight,
-} from "lucide-react";
-import { LogoTransparencyFilter } from "./Motion";
-import { About, Services, Contact, NotFound } from "./pages";
-import {
-  MarketplaceHome as Home,
-  MarketplaceBrowse,
-  MarketplaceDetail as Detail,
-  Journal,
-  JournalDetail,
-} from "./marketplace/Public";
-import { categories, journalName } from "./data/marketplace";
-import { PhotoCredits } from "./marketplace/PhotoCredits";
-import { LivelongFarm } from "./marketplace/Farm";
-import {
-  StorefrontPlaceholder,
-  StorefrontShell,
-} from "./features/shop/components/StorefrontShell";
+  About,
+  BagPage,
+  Contact,
+  HowToOrder,
+  NotFound,
+  PhotoCredits,
+} from "./features/shop/pages/Info";
+import { Journal, JournalArticle } from "./features/shop/pages/Journal";
+import { ProductPage } from "./features/shop/pages/Product";
+import { BagProvider } from "./store/bag";
+import { CatalogueProvider } from "./store/catalogue";
+import "./styles/store.css";
+
+const retiredPaths = [
+  "/cars",
+  "/property",
+  "/electronics",
+  "/other-goods",
+  "/paint-production",
+  "/farm-produce",
+  "/livelong-farm",
+  "/showroom",
+  "/showroom/:id",
+];
 function sessionSeen() {
   try {
-    return (
-      sessionStorage.getItem("fashyn-intro") === "seen" ||
-      sessionStorage.getItem("verimarts-intro") === "seen"
-    );
+    return sessionStorage.getItem("fashyn-intro") === "seen";
   } catch {
     return false;
   }
 }
-function Intro({ close }: { close: () => void }) {
-  const reduced = useReducedMotion();
-  const skip = useRef<HTMLButtonElement>(null);
-  useEffect(() => {
-    skip.current?.focus();
-    const timer = setTimeout(close, reduced ? 450 : 4500);
-    const escape = (e: KeyboardEvent) => {
-      if (e.key === "Escape") close();
-      if (e.key === "Tab") {
-        e.preventDefault();
-        skip.current?.focus();
-      }
-    };
-    document.addEventListener("keydown", escape);
-    return () => {
-      clearTimeout(timer);
-      document.removeEventListener("keydown", escape);
-    };
-  }, [close, reduced]);
-  return (
-    <motion.div
-      className="intro"
-      role="dialog"
-      aria-modal="true"
-      aria-label="FASHYN logo introduction"
-      exit={{ opacity: 0 }}
-      transition={{ duration: reduced ? 0 : 0.25 }}
-    >
-      <div className="intro-stage">
-        <video
-          className="intro-video"
-          autoPlay
-          muted
-          playsInline
-          poster="/assets/fashyn-wordmark.png"
-          onEnded={close}
-          onError={close}
-          aria-label="FASHYN logo reveal"
-        >
-          <source src="/assets/fashyn-intro.mp4" type="video/mp4" />
-        </video>
-      </div>
-      <button ref={skip} className="button secondary" onClick={close}>
-        Skip intro <ArrowRight size={16} />
-      </button>
-    </motion.div>
-  );
+function LegacyListing() {
+  const { slug } = useParams();
+  return <Navigate to={`/product/${slug}`} replace />;
 }
 export default function App() {
-  const [intro, setIntro] = useState(!sessionSeen());
+  const reduced = useReducedMotion();
+  const [intro, setIntro] = useState(() => !sessionSeen());
   const location = useLocation();
   const close = useCallback(() => {
     try {
       sessionStorage.setItem("fashyn-intro", "seen");
-      sessionStorage.setItem("verimarts-intro", "seen");
     } catch {
       /* Storage may be unavailable. */
     }
@@ -97,79 +56,60 @@ export default function App() {
   }, []);
   useEffect(() => {
     window.scrollTo(0, 0);
-    const titles: Record<string, string> = {
-      "/": "Modern style, thoughtfully chosen.",
-      "/shop": "The Collection",
-      "/journal": journalName,
-      ...Object.fromEntries(categories.map((c) => [`/${c.id}`, c.name])),
-      "/showroom": "Explore the showroom",
-      "/about": "About FASHYN",
-      "/services": "The FASHYN approach",
-      "/contact": "Contact FASHYN",
-      "/photo-credits": "Photo credits",
-    };
-    document.title = `${titles[location.pathname] ?? "Discover the collection"} | FASHYN`;
-    const description = document.querySelector('meta[name="description"]');
-    description?.setAttribute(
-      "content",
-      `${titles[location.pathname] ?? "Discover considered fashion"} at FASHYN. Explore a refined collection shaped by quality, confidence, and modern style.`,
-    );
   }, [location.pathname]);
   return (
-    <>
-      <LogoTransparencyFilter />
-      <AnimatePresence>{intro && <Intro close={close} />}</AnimatePresence>
-      <div className="fashyn-store" inert={intro}>
-        <a href="#main" className="skip-link">
-          Skip to content
-        </a>
-        <StorefrontShell onReplayIntro={() => setIntro(true)}>
-          <Routes>
-            <Route path="/" element={<Home />} />
-            <Route path="/shop" element={<MarketplaceBrowse />} />
-            <Route path="/women" element={<StorefrontPlaceholder title="Women" />} />
-            <Route path="/men" element={<StorefrontPlaceholder title="Men" />} />
-            <Route path="/children" element={<StorefrontPlaceholder title="Children" />} />
-            <Route path="/new-arrivals" element={<StorefrontPlaceholder title="New arrivals" />} />
-            <Route path="/sale" element={<StorefrontPlaceholder title="Sale" />} />
-            <Route path="/search" element={<StorefrontPlaceholder title="Search" />} />
-            <Route path="/bag" element={<StorefrontPlaceholder title="Your bag" />} />
-            <Route
-              path="/farm-produce"
-              element={<Navigate to="/livelong-farm" replace />}
-            />
-            {categories.map((c) => (
+    <CatalogueProvider>
+      <BagProvider>
+        <AnimatePresence>
+          {intro && <LoadingScreen key="loader" onDone={close} />}
+        </AnimatePresence>
+        <div className="store" inert={intro && !reduced}>
+          <StorefrontShell onReplayIntro={() => setIntro(true)}>
+            <Routes>
+              <Route path="/" element={<Home />} />
+              <Route path="/shop" element={<Catalogue view={{ kind: "all" }} />} />
+              {categories.map((category) => (
+                <Route
+                  key={category.id}
+                  path={`/${category.id}`}
+                  element={
+                    <Catalogue
+                      key={category.id}
+                      view={{ kind: "department", id: category.id }}
+                    />
+                  }
+                />
+              ))}
               <Route
-                key={c.id}
-                path={`/${c.id}`}
-                element={
-                  c.id === "livelong-farm" ? (
-                    <LivelongFarm />
-                  ) : (
-                    <MarketplaceBrowse category={c.id} />
-                  )
-                }
+                path="/new-arrivals"
+                element={<Catalogue key="new" view={{ kind: "new" }} />}
               />
-            ))}
-            <Route
-              path="/showroom"
-              element={<MarketplaceBrowse category="cars" />}
-            />
-            <Route path="/showroom/:id" element={<Detail />} />
-            <Route path="/listings/:slug" element={<Detail />} />
-            <Route path="/journal" element={<Journal />} />
-            <Route path="/journal/:slug" element={<JournalDetail />} />
-            <Route
-              path="/about"
-              element={<About replay={() => setIntro(true)} />}
-            />
-            <Route path="/services" element={<Services />} />
-            <Route path="/contact" element={<Contact />} />
-            <Route path="/photo-credits" element={<PhotoCredits />} />
-            <Route path="*" element={<NotFound />} />
-          </Routes>
-        </StorefrontShell>
-      </div>
-    </>
+              <Route
+                path="/sale"
+                element={<Catalogue key="sale" view={{ kind: "sale" }} />}
+              />
+              <Route
+                path="/search"
+                element={<Catalogue key="search" view={{ kind: "search" }} />}
+              />
+              <Route path="/bag" element={<BagPage />} />
+              <Route path="/product/:slug" element={<ProductPage />} />
+              <Route path="/listings/:slug" element={<LegacyListing />} />
+              <Route path="/journal" element={<Journal />} />
+              <Route path="/journal/:slug" element={<JournalArticle />} />
+              <Route path="/about" element={<About replay={() => setIntro(true)} />} />
+              <Route path="/how-to-order" element={<HowToOrder />} />
+              <Route path="/contact" element={<Contact />} />
+              <Route path="/photo-credits" element={<PhotoCredits />} />
+              <Route path="/services" element={<Navigate to="/how-to-order" replace />} />
+              {retiredPaths.map((path) => (
+                <Route key={path} path={path} element={<Navigate to="/shop" replace />} />
+              ))}
+              <Route path="*" element={<NotFound />} />
+            </Routes>
+          </StorefrontShell>
+        </div>
+      </BagProvider>
+    </CatalogueProvider>
   );
 }

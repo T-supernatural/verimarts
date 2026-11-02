@@ -1,6 +1,14 @@
 import { useEffect, useRef, useState } from "react";
 import type { FormEvent, ReactNode } from "react";
-import { categories, fields, slugify } from "../data/marketplace";
+import {
+  archivedCategories,
+  availabilityLabels,
+  categories,
+  categoryName,
+  fields,
+  isFashion,
+  slugify,
+} from "../data/marketplace";
 import type {
   Listing,
   ListingImage,
@@ -14,8 +22,9 @@ import {
   MAX_MEDIA_BYTES,
   MAX_VIDEO_SECONDS,
 } from "../data/contentRepository";
-import { ListingPreview, ArticlePreview } from "../marketplace/Public";
-import { MediaDisplay } from "../marketplace/MediaDisplay";
+import { ProductDetails } from "../features/shop/pages/Product";
+import { ArticleBody } from "../features/shop/pages/Journal";
+import { MediaDisplay } from "../features/shop/components/MediaDisplay";
 
 export function PreviewDialog({
   children,
@@ -31,9 +40,9 @@ export function PreviewDialog({
   return (
     <dialog ref={ref} className="content-preview" onCancel={onClose}>
       <div className="preview-heading">
-        <strong>Owner preview · Not a public publication</strong>
+        <strong>Preview: viewing this does not publish or change anything</strong>
         <button
-          className="button secondary"
+          className="button button--small"
           onClick={() => {
             ref.current?.close();
             onClose();
@@ -42,7 +51,7 @@ export function PreviewDialog({
           Close preview
         </button>
       </div>
-      {children}
+      <div className="preview-body">{children}</div>
     </dialog>
   );
 }
@@ -126,15 +135,15 @@ export function MediaEditor({
   }
   return (
     <fieldset className="media-editor" disabled={busy || disabled}>
-      <legend>{max === 1 ? "Cover image" : "Listing media"}</legend>
-      <p className="small muted">
+      <legend>{max === 1 ? "Cover image" : "Photos and video"}</legend>
+      <small>
         {kind === "articles"
           ? "JPEG, PNG or WebP image"
           : `Images (JPEG, PNG, WebP) and short videos (MP4, WebM) · Up to ${Math.round(MAX_MEDIA_BYTES / 1024 / 1024)} MiB each · Videos up to ${MAX_VIDEO_SECONDS} seconds`}{" "}
         · {max} file{max === 1 ? "" : "s"} maximum. Uploads stay private until
         published.
-      </p>
-      <label>
+      </small>
+      <label className="media-editor__drop">
         Upload {kind === "articles" ? "cover image" : "images or video"}
         <input
           type="file"
@@ -197,10 +206,10 @@ export function MediaEditor({
                 }
               />
             </label>
-            <div className="actions">
+            <div className="image-edit-card__actions">
               <button
                 type="button"
-                className="button secondary"
+                className="button button--outline"
                 aria-pressed={image.is_cover}
                 onClick={() =>
                   onChange(
@@ -212,7 +221,7 @@ export function MediaEditor({
               </button>
               <button
                 type="button"
-                className="button secondary"
+                className="button button--outline"
                 aria-label={`Move ${image.media_type === "video" ? "video" : "image"} ${index + 1} earlier`}
                 disabled={index === 0}
                 onClick={() => move(index, -1)}
@@ -221,7 +230,7 @@ export function MediaEditor({
               </button>
               <button
                 type="button"
-                className="button secondary"
+                className="button button--outline"
                 aria-label={`Move ${image.media_type === "video" ? "video" : "image"} ${index + 1} later`}
                 disabled={index === images.length - 1}
                 onClick={() => move(index, 1)}
@@ -230,7 +239,7 @@ export function MediaEditor({
               </button>
               <button
                 type="button"
-                className="button secondary"
+                className="button button--outline"
                 onClick={() => {
                   const next = images.filter((_, n) => n !== index);
                   if (!next.some((i) => i.is_cover) && next.length)
@@ -251,14 +260,14 @@ export function newListing(): Listing {
   const now = new Date().toISOString();
   return {
     id: crypto.randomUUID(),
-    category: "livelong-farm",
+    category: "women",
     title: "",
     slug: "",
     description: "",
     price: null,
-    currency: null,
+    currency: "NGN",
     price_label: "",
-    availability: "not-provided",
+    availability: "available",
     status: "draft",
     featured: false,
     location: "",
@@ -309,7 +318,7 @@ export function ListingEditor({
     ) || "draft") as "draft" | "published";
     setError("");
     if (status === "published" && !item.description.trim()) {
-      setError("Add an owner-approved description before publishing.");
+      setError("Add a description before publishing.");
       return;
     }
     setBusy(true);
@@ -328,15 +337,34 @@ export function ListingEditor({
       setBusy(false);
     }
   }
+  const fashion = isFashion(item.category);
+  const compareField = (
+    <label>
+      Original price (for sale items)
+      <input
+        type="number"
+        min="0"
+        step="0.01"
+        value={item.details.compare_at_price || ""}
+        onChange={(e) => {
+          const details = { ...item.details };
+          if (e.target.value) details.compare_at_price = e.target.value;
+          else delete details.compare_at_price;
+          change("details", details);
+        }}
+      />
+      <small>Leave empty unless this piece is reduced. Must be above the price.</small>
+    </label>
+  );
   return (
     <>
-      <div className="section-heading">
+      <div className="workspace__head">
         <div>
-          <span className="eyebrow red-text">OWNER CONTENT</span>
-          <h1>{initial.title ? "Edit listing" : "Create listing"}</h1>
+          <h1>{initial.title ? "Edit product" : "Add product"}</h1>
+          <p>Only enter facts you can confirm. Blank fields stay hidden.</p>
         </div>
         <button
-          className="button secondary"
+          className="button button--outline"
           onClick={() => {
             if (
               window.confirm("Leave this editor? Unsaved changes will be lost.")
@@ -344,32 +372,43 @@ export function ListingEditor({
               onDone();
           }}
         >
-          Back to listings
+          Back to products
         </button>
       </div>
       <form className="owner-form" onSubmit={save}>
-        <fieldset disabled={busy || uploading}>
-          <legend>Listing information</legend>
-          <div className="form-grid">
-            <label>
-              Title
-              <input
-                required
-                maxLength={180}
-                value={item.title}
-                onChange={(e) => change("title", e.target.value)}
-              />
-            </label>
-            <label>
-              Slug
-              <input
-                required
-                pattern="[a-z0-9]+(-[a-z0-9]+)*"
-                maxLength={180}
-                value={item.slug}
-                onChange={(e) => change("slug", e.target.value)}
-                placeholder="lowercase-hyphenated-slug"
-              />
+        <div className="editor-layout">
+          <div>
+            <fieldset className="editor-card" disabled={busy || uploading}>
+              <legend>Basics</legend>
+              <label>
+                Title
+                <input
+                  required
+                  maxLength={180}
+                  value={item.title}
+                  onChange={(e) => change("title", e.target.value)}
+                />
+              </label>
+              <label>
+                Description
+                <textarea
+                  maxLength={20000}
+                  rows={5}
+                  value={item.description}
+                  onChange={(e) => change("description", e.target.value)}
+                />
+              </label>
+              <label>
+                Web address (slug)
+                <input
+                  required
+                  pattern="[a-z0-9]+(-[a-z0-9]+)*"
+                  maxLength={180}
+                  value={item.slug}
+                  onChange={(e) => change("slug", e.target.value)}
+                  placeholder="lowercase-hyphenated-slug"
+                />
+              </label>
               <button
                 className="text-link"
                 type="button"
@@ -377,196 +416,192 @@ export function ListingEditor({
               >
                 Generate from title
               </button>
-            </label>
-            <label>
-              Listing category
-              <select
-                aria-label="Listing category"
-                value={item.category}
-                onChange={(e) =>
-                  setItem((current) => ({
-                    ...current,
-                    category: e.target.value as Category,
-                    details: {},
-                  }))
-                }
-              >
-                {categories.map((c) => (
-                  <option value={c.id} key={c.id}>
-                    {c.name}
-                  </option>
+            </fieldset>
+            <fieldset className="editor-card" disabled={busy || uploading}>
+              <legend>{fashion ? "Clothing details" : `${categoryName(item.category)} details`}</legend>
+              <div className="form-grid">
+                {fields[item.category].map((f) => (
+                  <label key={f.key}>
+                    {f.label}
+                    {f.options ? (
+                      <select
+                        value={item.details[f.key] || ""}
+                        onChange={(e) =>
+                          change("details", {
+                            ...item.details,
+                            [f.key]: e.target.value,
+                          })
+                        }
+                      >
+                        <option value="">Not provided</option>
+                        {f.options.map((v) => (
+                          <option key={v}>{v}</option>
+                        ))}
+                      </select>
+                    ) : (
+                      <input
+                        type={f.numeric ? "number" : "text"}
+                        min={f.numeric ? 0 : undefined}
+                        step={f.numeric ? 1 : undefined}
+                        maxLength={5000}
+                        value={item.details[f.key] || ""}
+                        onChange={(e) => {
+                          const details = { ...item.details };
+                          if (e.target.value) details[f.key] = e.target.value;
+                          else delete details[f.key];
+                          change("details", details);
+                        }}
+                      />
+                    )}
+                    {f.hint && <small>{f.hint}</small>}
+                  </label>
                 ))}
-              </select>
-            </label>
-            <label>
-              Availability
-              <select
-                value={item.availability}
-                onChange={(e) =>
-                  change(
-                    "availability",
-                    e.target.value as Listing["availability"],
-                  )
-                }
-              >
-                <option value="not-provided">Not provided</option>
-                <option value="available">Available</option>
-                <option value="unavailable">Unavailable</option>
-                <option value="sold">Sold</option>
-              </select>
-            </label>
-            <label>
-              Price
-              <input
-                type="number"
-                min="0"
-                step="0.01"
-                value={item.price ?? ""}
-                onChange={(e) =>
-                  change(
-                    "price",
-                    e.target.value === "" ? null : Number(e.target.value),
-                  )
-                }
+              </div>
+            </fieldset>
+            <div className="editor-card">
+              <MediaEditor
+                images={item.images}
+                onChange={(images) => change("images", images)}
+                kind="listings"
+                id={item.id}
+                onBusy={setUploading}
+                disabled={busy}
               />
-            </label>
-            <label>
-              Currency (ISO code)
-              <input
-                required={item.price !== null}
-                pattern="[A-Z]{3}"
-                maxLength={3}
-                value={item.currency || ""}
-                onChange={(e) =>
-                  change("currency", e.target.value.toUpperCase() || null)
-                }
-                placeholder="Only the owner-confirmed currency"
-              />
-            </label>
-            <label>
-              Price label when price is missing
-              <input
-                maxLength={180}
-                value={item.price_label}
-                onChange={(e) => change("price_label", e.target.value)}
-                placeholder="Leave empty if not provided"
-              />
-            </label>
-            <label>
-              Public location
-              <input
-                maxLength={500}
-                value={item.location}
-                onChange={(e) => change("location", e.target.value)}
-              />
-            </label>
+            </div>
           </div>
-          <label>
-            Description
-            <textarea
-              maxLength={20000}
-              rows={6}
-              value={item.description}
-              onChange={(e) => change("description", e.target.value)}
-            />
-          </label>
-          <label className="checkbox-label">
-            <input
-              type="checkbox"
-              checked={item.featured}
-              onChange={(e) => change("featured", e.target.checked)}
-            />
-            Feature this listing on the homepage
-          </label>
-          <h2>
-            {categories.find((c) => c.id === item.category)?.name} details
-          </h2>
-          <p className="small muted">
-            Only enter facts you can confirm. Blank fields are omitted publicly.
-            Changing category clears its fields.
-          </p>
-          <div className="form-grid">
-            {fields[item.category].map((f) => (
-              <label key={f.key}>
-                {f.label}
-                {f.options ? (
-                  <select
-                    value={item.details[f.key] || ""}
-                    onChange={(e) =>
-                      change("details", {
-                        ...item.details,
-                        [f.key]: e.target.value,
-                      })
-                    }
-                  >
-                    <option value="">Not provided</option>
-                    {f.options.map((v) => (
-                      <option key={v}>{v}</option>
+          <div>
+            <fieldset className="editor-card" disabled={busy || uploading}>
+              <legend>Organise</legend>
+              <label>
+                Department
+                <select
+                  aria-label="Department"
+                  value={item.category}
+                  onChange={(e) =>
+                    setItem((current) => ({
+                      ...current,
+                      category: e.target.value as Category,
+                      details: {},
+                    }))
+                  }
+                >
+                  {categories.map((c) => (
+                    <option value={c.id} key={c.id}>
+                      {c.name}
+                    </option>
+                  ))}
+                  {archivedCategories
+                    .filter((c) => c.id === initial.category)
+                    .map((c) => (
+                      <option value={c.id} key={c.id}>
+                        {c.name} (archived)
+                      </option>
                     ))}
-                  </select>
-                ) : (
-                  <input
-                    type={f.numeric ? "number" : "text"}
-                    min={f.numeric ? 0 : undefined}
-                    step={f.numeric ? 1 : undefined}
-                    maxLength={5000}
-                    value={item.details[f.key] || ""}
-                    onChange={(e) => {
-                      const details = { ...item.details };
-                      if (e.target.value) details[f.key] = e.target.value;
-                      else delete details[f.key];
-                      change("details", details);
-                    }}
-                  />
-                )}
+                </select>
+                <small>Changing department clears the details fields.</small>
               </label>
-            ))}
+              <label>
+                Availability
+                <select
+                  value={item.availability}
+                  onChange={(e) =>
+                    change(
+                      "availability",
+                      e.target.value as Listing["availability"],
+                    )
+                  }
+                >
+                  {Object.entries(availabilityLabels).map(([value, label]) => (
+                    <option key={value} value={value}>
+                      {label}
+                    </option>
+                  ))}
+                </select>
+              </label>
+              <label className="checkbox-label">
+                <input
+                  type="checkbox"
+                  checked={item.featured}
+                  onChange={(e) => change("featured", e.target.checked)}
+                />
+                Feature on the homepage
+              </label>
+            </fieldset>
+            <fieldset className="editor-card" disabled={busy || uploading}>
+              <legend>Pricing</legend>
+              <label>
+                Price
+                <input
+                  type="number"
+                  min="0"
+                  step="0.01"
+                  value={item.price ?? ""}
+                  onChange={(e) =>
+                    change(
+                      "price",
+                      e.target.value === "" ? null : Number(e.target.value),
+                    )
+                  }
+                />
+              </label>
+              <label>
+                Currency (ISO code)
+                <input
+                  required={item.price !== null}
+                  pattern="[A-Z]{3}"
+                  maxLength={3}
+                  value={item.currency || ""}
+                  onChange={(e) =>
+                    change("currency", e.target.value.toUpperCase() || null)
+                  }
+                />
+              </label>
+              {fashion && compareField}
+              <label>
+                Text to show when there is no price
+                <input
+                  maxLength={180}
+                  value={item.price_label}
+                  onChange={(e) => change("price_label", e.target.value)}
+                  placeholder="Price on request"
+                />
+              </label>
+            </fieldset>
           </div>
-        </fieldset>
-        <MediaEditor
-          images={item.images}
-          onChange={(images) => change("images", images)}
-          kind="listings"
-          id={item.id}
-          onBusy={setUploading}
-          disabled={busy}
-        />
+        </div>
         {error && (
           <p role="alert" className="form-error">
             {error}
           </p>
         )}
-        <div className="actions">
+        <div className="editor-bar">
+          <small>Drafts stay off the store. Previewing does not publish.</small>
+          <button
+            className="button button--outline"
+            type="button"
+            onClick={() => setPreview(true)}
+          >
+            Preview product
+          </button>
           <button
             disabled={busy || uploading}
-            className="button secondary"
+            className="button button--outline"
             data-status="draft"
           >
             {busy ? "Saving…" : "Save draft / unpublish"}
           </button>
           <button
             disabled={busy || uploading}
-            className="button primary"
+            className="button button--indigo"
             data-status="published"
           >
             Save and publish
           </button>
-          <button
-            className="button secondary"
-            type="button"
-            onClick={() => setPreview(true)}
-          >
-            Preview listing
-          </button>
         </div>
-        <p className="small muted">
-          Saving as draft removes the listing from the public catalogue.
-          Previewing does not publish it.
-        </p>
       </form>
       {preview && (
         <PreviewDialog onClose={() => setPreview(false)}>
-          <ListingPreview item={item} />
+          <ProductDetails item={item} preview />
         </PreviewDialog>
       )}
     </>
@@ -631,10 +666,10 @@ export function ArticleEditor({
   }
   return (
     <>
-      <div className="section-heading">
-        <h1>{initial.title ? "Edit article" : "Create article"}</h1>
+      <div className="workspace__head">
+        <h1>{initial.title ? "Edit article" : "Write article"}</h1>
         <button
-          className="button secondary"
+          className="button button--outline"
           onClick={() => {
             if (
               window.confirm("Leave this editor? Unsaved changes will be lost.")
@@ -646,9 +681,9 @@ export function ArticleEditor({
         </button>
       </div>
       <form className="owner-form" onSubmit={save}>
-        <fieldset disabled={busy || uploading}>
-          <legend>Journal article</legend>
-          <div className="form-grid">
+        <div className="editor-layout">
+          <fieldset className="editor-card" disabled={busy || uploading}>
+            <legend>Article</legend>
             <label>
               Article title
               <input
@@ -659,14 +694,32 @@ export function ArticleEditor({
               />
             </label>
             <label>
-              Article slug
-              <input
-                required
-                maxLength={180}
-                pattern="[a-z0-9]+(-[a-z0-9]+)*"
-                value={item.slug}
-                onChange={(e) => setItem({ ...item, slug: e.target.value })}
+              Article content
+              <textarea
+                rows={18}
+                maxLength={100000}
+                value={item.body}
+                onChange={(e) => setItem({ ...item, body: e.target.value })}
               />
+              <small>
+                Plain text. Use blank lines between paragraphs. HTML is displayed
+                as text, never executed.
+              </small>
+            </label>
+          </fieldset>
+          <div>
+            <fieldset className="editor-card" disabled={busy || uploading}>
+              <legend>Organise</legend>
+              <label>
+                Article web address (slug)
+                <input
+                  required
+                  maxLength={180}
+                  pattern="[a-z0-9]+(-[a-z0-9]+)*"
+                  value={item.slug}
+                  onChange={(e) => setItem({ ...item, slug: e.target.value })}
+                />
+              </label>
               <button
                 type="button"
                 className="text-link"
@@ -674,71 +727,62 @@ export function ArticleEditor({
               >
                 Generate from title
               </button>
-            </label>
-            <label>
-              Article category
-              <input
-                maxLength={100}
-                value={item.category}
-                onChange={(e) => setItem({ ...item, category: e.target.value })}
+              <label>
+                Article category
+                <input
+                  maxLength={100}
+                  value={item.category}
+                  onChange={(e) =>
+                    setItem({ ...item, category: e.target.value })
+                  }
+                />
+              </label>
+            </fieldset>
+            <div className="editor-card">
+              <MediaEditor
+                images={images}
+                onChange={setImages}
+                kind="articles"
+                id={item.id}
+                max={1}
+                onBusy={setUploading}
+                disabled={busy}
               />
-            </label>
+            </div>
           </div>
-          <label>
-            Article content
-            <textarea
-              rows={18}
-              maxLength={100000}
-              value={item.body}
-              onChange={(e) => setItem({ ...item, body: e.target.value })}
-            />
-          </label>
-          <p className="small muted">
-            Plain text. Use blank lines between paragraphs. HTML is displayed as
-            text, never executed.
-          </p>
-        </fieldset>
-        <MediaEditor
-          images={images}
-          onChange={setImages}
-          kind="articles"
-          id={item.id}
-          max={1}
-          onBusy={setUploading}
-          disabled={busy}
-        />
+        </div>
         {error && (
           <p className="form-error" role="alert">
             {error}
           </p>
         )}
-        <div className="actions">
+        <div className="editor-bar">
           <button
-            className="button secondary"
+            className="button button--outline"
+            type="button"
+            onClick={() => setPreview(true)}
+          >
+            Preview article
+          </button>
+          <button
+            className="button button--outline"
             disabled={busy || uploading}
             data-status="draft"
           >
             {busy ? "Saving…" : "Save draft / unpublish"}
           </button>
           <button
-            className="button primary"
+            className="button button--indigo"
             disabled={busy || uploading}
             data-status="published"
           >
             Save and publish
           </button>
-          <button
-            className="button secondary"
-            type="button"
-            onClick={() => setPreview(true)}
-          >
-            Preview article
-          </button>
         </div>
       </form>
       {preview && (
         <PreviewDialog onClose={() => setPreview(false)}>
-          <ArticlePreview item={prepared} />
+          <ArticleBody item={prepared} />
         </PreviewDialog>
       )}
     </>
