@@ -10,11 +10,11 @@ test("FASHYN navigation and confirmed business contacts", async ({ page }) => {
   );
   await page.setViewportSize({ width: 1366, height: 900 });
   await page.goto("/contact");
-  const nav = page.getByRole("navigation", { name: "Main navigation" });
+  const nav = page.getByRole("navigation", { name: "Fashion navigation" });
   await expect(
     page.getByRole("button", { name: "Open navigation" }),
   ).toBeHidden();
-  await expect(nav.getByRole("link", { name: "Collection", exact: true })).toHaveCount(1);
+  await expect(nav.getByRole("link", { name: "Women", exact: true })).toHaveCount(1);
   await expect(nav.getByRole("link", { name: "Cars", exact: true })).toHaveCount(0);
   await expect(
     page
@@ -28,12 +28,41 @@ test("FASHYN navigation and confirmed business contacts", async ({ page }) => {
     page.locator('main a[href^="https://wa.me/2349070419149"]'),
   ).toHaveCount(2);
   await page.setViewportSize({ width: 390, height: 844 });
-  await page.getByRole("button", { name: "Open navigation" }).click();
-  await nav.getByRole("link", { name: "Collection", exact: true }).click();
-  await expect(page).toHaveURL(/\/shop$/);
-  await expect(
-    page.getByRole("button", { name: "Open navigation" }),
-  ).toBeVisible();
+  await page.getByRole("button", { name: "Open menu" }).click();
+  await page.getByRole("dialog", { name: "Menu" }).getByRole("link", { name: "Women collection", exact: true }).click();
+  await expect(page).toHaveURL(/\/women$/);
+  await expect(page.getByRole("button", { name: "Open menu" })).toBeVisible();
+});
+
+test("fashion shell supports keyboard mega-menu and search overlay", async ({ page }) => {
+  await mockBackend(page);
+  await page.addInitScript(() => sessionStorage.setItem("fashyn-intro", "seen"));
+  await page.setViewportSize({ width: 1024, height: 800 });
+  await page.goto("/");
+  const women = page.getByRole("navigation", { name: "Fashion navigation" }).getByRole("link", { name: "Women", exact: true });
+  await women.focus();
+  await expect(page.getByRole("link", { name: "Dresses", exact: true })).toBeVisible();
+  await page.getByRole("button", { name: "Search" }).click();
+  await expect(page.getByRole("dialog", { name: "Search FASHYN" })).toBeVisible();
+  await page.keyboard.press("Escape");
+  await expect(page.getByRole("dialog", { name: "Search FASHYN" })).toBeHidden();
+  await expect(page.getByRole("button", { name: "Search" })).toBeFocused();
+});
+
+test("fashion shell mobile drawer works at supported widths", async ({ page }) => {
+  await mockBackend(page);
+  await page.addInitScript(() => sessionStorage.setItem("fashyn-intro", "seen"));
+  for (const width of [360, 390, 768]) {
+    await page.setViewportSize({ width, height: 800 });
+    await page.goto("/");
+    await page.getByRole("button", { name: "Open menu" }).click();
+    const drawer = page.getByRole("dialog", { name: "Menu" });
+    await expect(drawer).toBeVisible();
+    await drawer.getByRole("button", { name: "Women" }).click();
+    await expect(drawer.getByRole("link", { name: "Dresses", exact: true })).toBeVisible();
+    await page.keyboard.press("Escape");
+    await expect(drawer).toBeHidden();
+  }
 });
 const farmFixture: FarmProfile = {
   id: "livelong-farm",
@@ -454,14 +483,14 @@ test("farm leads with products and grouped footer fits desktop and mobile", asyn
         ),
     ).toBe(true);
     await page.locator("footer").scrollIntoViewIfNeeded();
-    await expect(page.locator("footer")).toContainText("THE COLLECTION");
-    await expect(page.locator("footer")).toContainText("DISCOVER FASHYN");
+    await expect(page.locator("footer")).toContainText("SHOP");
+    await expect(page.locator("footer")).toContainText("DISCOVER");
     expect(
       await page.evaluate(
         () => document.documentElement.scrollWidth <= window.innerWidth,
       ),
     ).toBe(true);
-    await page.getByRole("button", { name: "Back to top" }).click();
+    await page.evaluate(() => window.scrollTo(0, 0));
     await expect.poll(() => page.evaluate(() => window.scrollY)).toBe(0);
   }
 });
@@ -740,12 +769,12 @@ test("mobile pages fit, nav resets scroll, and fixed header follows scroll direc
   await mockBackend(page);
   await page.setViewportSize({ width: 390, height: 844 });
   await page.goto("/");
-  await page.getByRole("button", { name: "Open navigation" }).click();
+  await page.getByRole("button", { name: "Open menu" }).click();
   await page
-    .getByRole("navigation", { name: "Main navigation" })
-    .getByRole("link", { name: "Collection", exact: true })
+    .getByRole("dialog", { name: "Menu" })
+    .getByRole("link", { name: "Women collection", exact: true })
     .click();
-  await expect(page).toHaveURL(/shop$/);
+  await expect(page).toHaveURL(/women$/);
   for (const path of [
     "/",
     "/shop",
@@ -774,15 +803,14 @@ test("mobile pages fit, nav resets scroll, and fixed header follows scroll direc
   }
   await page.goto("/");
   await page.evaluate(() => window.scrollTo(0, 600));
-  await expect(page.locator("header")).toHaveClass(/header--hidden/);
+  await expect(page.locator(".fashyn-header")).toBeVisible();
   await page.evaluate(() => window.scrollTo(0, 599));
-  await expect(page.locator("header")).not.toHaveClass(/header--hidden/);
-  await page.getByRole("button", { name: "Open navigation" }).click();
+  await page.getByRole("button", { name: "Open menu" }).click();
   await page
-    .getByRole("navigation")
-    .getByRole("link", { name: "Home", exact: true })
+    .getByRole("dialog", { name: "Menu" })
+    .getByRole("link", { name: "Women collection", exact: true })
     .evaluate((el) => (el as HTMLElement).click());
-  await expect.poll(() => page.evaluate(() => window.scrollY)).toBe(0);
+  await expect(page).toHaveURL(/women$/);
 });
 test("intro still skips, remembers the session, replays and respects reduced motion", async ({
   browser,

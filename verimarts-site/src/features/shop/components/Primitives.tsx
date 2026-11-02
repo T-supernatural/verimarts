@@ -15,6 +15,7 @@ function useOverlay(open: boolean, onClose: () => void, restoreRef?: React.RefOb
   useEffect(() => {
     if (!open) return;
     const previous = document.activeElement as HTMLElement | null;
+    const restore = restoreRef?.current || previous;
     const previousOverflow = document.body.style.overflow;
     document.body.style.overflow = "hidden";
     const focusFirst = () => {
@@ -49,7 +50,7 @@ function useOverlay(open: boolean, onClose: () => void, restoreRef?: React.RefOb
       window.cancelAnimationFrame(frame);
       document.removeEventListener("keydown", onKeyDown);
       document.body.style.overflow = previousOverflow;
-      (restoreRef?.current || previous)?.focus?.();
+      restore?.focus?.();
     };
   }, [open, onClose, restoreRef]);
   return firstRef;
@@ -155,7 +156,7 @@ export function ResponsiveImage({
   const [failed, setFailed] = useState(false);
   const style = { aspectRatio: `${width} / ${height}` } as CSSProperties;
   return failed ? (
-    <div className="fashyn-image-fallback" style={style} role="img" aria-label={alt || fallback.toString()}>
+    <div className="fashyn-image-fallback" style={style} role="img" aria-label={alt || (typeof fallback === "string" ? fallback : "Image unavailable")}>
       {fallback}
     </div>
   ) : (

@@ -28,7 +28,10 @@ export function StorefrontShell({ children, onReplayIntro }: { children: ReactNo
     window.addEventListener("scroll", update, { passive: true });
     return () => window.removeEventListener("scroll", update);
   }, []);
-  useEffect(() => setMobileOpen(false), [location.pathname]);
+  useEffect(() => {
+    const frame = window.requestAnimationFrame(() => setMobileOpen(false));
+    return () => window.cancelAnimationFrame(frame);
+  }, [location.pathname]);
   return (
     <div className={`fashyn-shell${isHome && !scrolled ? " fashyn-shell--transparent" : ""}`}>
       {storeConfig.announcement && <div className="fashyn-announcement">{storeConfig.announcement}</div>}
